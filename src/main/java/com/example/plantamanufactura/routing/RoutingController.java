@@ -15,12 +15,11 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Ramos
  */
 @Controller
-@RequestMapping("/redirect")
 public class RoutingController {
 
     @GetMapping("/")
     public String home() {
-        return "redirect:/redirect/index";
+        return "index";
     }
 
     /**

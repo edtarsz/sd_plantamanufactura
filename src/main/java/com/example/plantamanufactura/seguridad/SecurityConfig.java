@@ -38,14 +38,14 @@ public class SecurityConfig {
                 )
                 .formLogin(form
                         -> form
-                        .loginPage("/redirect/login") // Tu página personalizada
-                        .loginProcessingUrl("/redirect/login") // URL que procesa el formulario
-                        .defaultSuccessUrl("/redirect/index", true) // Redirigir tras login exitoso
-                        .failureUrl("/redirect/login?error=true") // Redirigir si falla
+                        .loginPage("/login") // Tu página personalizada
+                        .loginProcessingUrl("/login") // URL que procesa el formulario
+                        .defaultSuccessUrl("/index", true) // Redirigir tras login exitoso
+                        .failureUrl("/login?error=true") // Redirigir si falla
                         .permitAll()
                 ).logout(logout
                         -> logout
-                        .logoutSuccessUrl("/redirect/login?logout") // Redirigir tras logout
+                        .logoutSuccessUrl("/login?logout") // Redirigir tras logout
                         .permitAll()
                 ).csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/v1/**") // Desactiva CSRF para APIs
