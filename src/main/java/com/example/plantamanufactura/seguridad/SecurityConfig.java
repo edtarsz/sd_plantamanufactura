@@ -23,7 +23,17 @@ public class SecurityConfig {
         http
                 .authorizeRequests(auth
                         -> auth
-                        .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/img/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/api/v1/**",
+                                "/redirect/**",
+                                "/login",
+                                "/register",
+                                "/css/**",
+                                "/js/**",
+                                "/img/**",
+                                "/script.js"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form
@@ -37,6 +47,8 @@ public class SecurityConfig {
                         -> logout
                         .logoutSuccessUrl("/redirect/login?logout") // Redirigir tras logout
                         .permitAll()
+                ).csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/v1/**") // Desactiva CSRF para APIs
                 );
 
         return http.build();

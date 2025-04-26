@@ -18,6 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/redirect")
 public class RoutingController {
 
+    @GetMapping("/")
+    public String home() {
+        return "redirect:/redirect/index";
+    }
+
     /**
      * Redirige al login con posibles parámetros de error/logout
      *
