@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class RoutingController {
 
     @GetMapping("/")
-    public String home() {
+    public String index() {
         return "index";
     }
 
