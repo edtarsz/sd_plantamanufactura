@@ -5,7 +5,6 @@
 package com.example.plantamanufactura.controlador;
 
 import com.example.plantamanufactura.entidades.Pieza;
-import com.example.plantamanufactura.entidades.Reporte;
 import com.example.plantamanufactura.servicio.PiezaServicio;
 import java.util.List;
 import java.util.Optional;

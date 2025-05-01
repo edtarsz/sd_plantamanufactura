@@ -8,6 +8,7 @@ import com.example.plantamanufactura.entidades.Pieza;
 import com.example.plantamanufactura.repositorio.PiezaRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
  * @author Ramos
  */
 @Service
+@AllArgsConstructor
 public class PiezaServicio {
 
     @Autowired

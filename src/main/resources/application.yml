@@ -1,21 +1,28 @@
-spring.datasource.url=jdbc:mysql://localhost:3306/manufactura
-spring.datasource.username=root
-spring.datasource.password=1234
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/manufactura
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
-spring.jpa.show-sql=true
-spring.jpa.hibernate.ddl-auto=update
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
 
-server.port=8080
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
 
-# Thymeleaf
-spring.thymeleaf.cache=false
-spring.thymeleaf.prefix=classpath:/templates/
-spring.thymeleaf.suffix=.html
+  mvc:
+    static-path-pattern: "/**"
 
-# Static
-spring.mvc.static-path-pattern=/**
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
 
-spring.devtools.restart.enabled=true
-spring.devtools.livereload.enabled=true
-spring.thymeleaf.cache=false
+server:
+  port: 8080

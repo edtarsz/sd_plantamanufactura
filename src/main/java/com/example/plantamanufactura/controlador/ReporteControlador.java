@@ -6,7 +6,6 @@ package com.example.plantamanufactura.controlador;
 
 import com.example.plantamanufactura.entidades.Reporte;
 import com.example.plantamanufactura.servicio.ReporteServicio;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;

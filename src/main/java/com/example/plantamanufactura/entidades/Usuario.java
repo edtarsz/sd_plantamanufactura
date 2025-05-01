@@ -29,11 +29,11 @@ public class Usuario {
     @Column(name = "idUsuario")
     private Long idUsuario;
 
-    @Column(name = "nombreCompleto", nullable = false)
+    @Column(name = "fullName", nullable = false)
     private String fullName;
 
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    @Column(name = "username", nullable = false, unique = true)
+    private String username;
 
     @Column(name = "password", nullable = false)
     private String password;
