@@ -27,8 +27,10 @@
         <url/>
     </scm>
     <properties>
-        <java.version>21</java.version>
+        <java.version>20</java.version>
+        <start-class>com.example.plantamanufactura.DemoApplication</start-class>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

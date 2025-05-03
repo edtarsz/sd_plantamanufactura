@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla de Reportes</title>
+    <link rel="stylesheet" th:href="@{/css/reportes.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">LOGO</div>
+        <button class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <main>
+        <div class="page-header">
+            <h1>Pantalla de Reportes</h1>
+            <div class="currency-toggle">
+                <button id="currency-usd" class="currency-btn active">USD</button>
+                <button id="currency-mxn" class="currency-btn">MXN</button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-label">Filtrar por</div>
+            <div class="filters">
+                <div class="filter-item">
+                    <div class="select-wrapper">
+                        <select id="filter-fecha">
+                            <option value="">Fecha</option>
+                            <option value="hoy">Hoy</option>
+                            <option value="semana">Última Semana</option>
+                            <option value="mes">Último Mes</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <div class="select-wrapper">
+                         <select id="filter-tipo-defecto">
+                            <option value="">Tipo de Defecto</option>
+                            <option value="defecto1">Defecto 1</option>
+                            <option value="defecto2">Defecto 2</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <div class="select-wrapper">
+                         <select id="filter-inspector">
+                            <option value="">Inspector</option>
+                             <option value="insp1">Ana Cristina</option>
+                            <option value="insp2">Juan Pérez</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <div class="select-wrapper">
+                         <select id="filter-lote">
+                            <option value="">Lote</option>
+                             <option value="loteA">Lote A</option>
+                            <option value="loteB">Lote B</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <div class="select-wrapper">
+                         <select id="filter-pieza">
+                            <option value="">Pieza</option>
+                             <option value="piezaX">Pieza X</option>
+                            <option value="piezaY">Pieza Y</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                 </div>
+        </div>
+
+        <div class="content-container">
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="th id">ID</div>
+                    <div class="th pieza">PIEZA</div>
+                    <div class="th inspector">INSPECTOR</div>
+                    <div class="th lote">LOTE</div>
+                    <div class="th defecto">TIPO DE DEFECTO</div>
+                </div>
+                <div class="table-body">
+                    <div class="loading-placeholder" style="text-align: center; padding: 20px; color: #555;">Cargando datos...</div>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <div class="summary-header">
+                    RESUMEN DEL REPORTE
+                </div>
+                 <div class="summary-content">
+                    <div class="loading-placeholder" style="text-align: center; padding: 20px; color: #aaa;">Seleccione filtros para ver resumen.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <div class="export-label">Exportar Vista Actual</div>
+            <div class="export-options"> <div class="export-format">
+                    <div class="select-wrapper">
+                         <select id="export-format-select">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <button id="export-btn-main" class="export-btn">
+                    Exportar
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="date-export-section">
+            <div class="date-export-header">Exportar por Fechas</div>
+            <div class="date-export-controls"> <div class="date-range">
+                    <div class="date-field">
+                        <label for="date-inicial">Fecha Inicial:</label>
+                        <input type="date" id="date-inicial" value="" class="date-input">
+                    </div>
+                    <div class="date-field">
+                        <label for="date-final">Fecha Final:</label>
+                        <input type="date" id="date-final" value="" class="date-input">
+                    </div>
+                </div>
+                 <button id="export-btn-date" class="export-btn">
+                    Exportar Rango
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script th:src="@{/js/reportes_script.js}" defer></script>
+</body>
+</html>
