@@ -1,6 +1,7 @@
 eureka:
   client:
     register-with-eureka: false
+    fetch-registry: false
      
 server:
   port: 8222
@@ -14,16 +15,18 @@ spring:
     
   cloud:
     gateway:
-      routes:
-        - id: reportes
-          uri: http://localhost:8070
-          predicates:
-            - Path=/api/v1/reportes/**
-            - Path=/api/v1/reportes
-            
-        - id: usuarios
-          uri: http://localhost:8090
-          predicates:
-            - Path=/api/v1/usuarios/** 
-            - Path=/api/v1/usuarios
-            
+      mvc:
+        routes:
+          - id: usuarios
+            uri: http://localhost:8090
+            predicates:
+              - Path=/api/v1/usuarios/**
+              
+          - id: reportes
+            uri: http://localhost:8070
+            predicates:
+              - Path=/api/v1/reportes/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
