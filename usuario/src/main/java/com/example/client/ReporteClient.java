@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  *
  * @author Ramos
  */
-@FeignClient(name = "reporte-servicio", url = "${application.config.reportes-url}")
+@FeignClient(name = "reportes")
 public interface ReporteClient {
 
     @GetMapping("/usuario/{idUsuario}")
