@@ -18,6 +18,11 @@ spring:
             uri: lb://REPORTES
             predicates:
               - Path=/api/v1/reportes/**
+              
+          - id: defectos
+            uri: lb://REPORTES
+            predicates:
+              - Path=/api/v1/defectos/**    
 
 eureka:
   client:

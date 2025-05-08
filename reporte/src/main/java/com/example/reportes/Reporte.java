@@ -4,15 +4,18 @@
  */
 package com.example.reportes;
 
+import com.example.defectos.Defecto;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,10 +26,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@Data
 @Entity
 @Table(name = "reporte")
 public class Reporte {
@@ -42,6 +44,6 @@ public class Reporte {
     @Column(name = "idUsuario", nullable = false)
     private Long idUsuario;
 
-//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Defecto> defectos;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Defecto> defectos;
 }
