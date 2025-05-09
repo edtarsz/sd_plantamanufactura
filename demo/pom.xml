@@ -61,14 +61,18 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.38</version>
-            <type>jar</type>
+            <scope>provided</scope>
         </dependency>
+
     
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
             <version>1.19.4</version>
         </dependency>
+        
+        
+
 
 
     </dependencies>
