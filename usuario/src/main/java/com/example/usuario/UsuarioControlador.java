@@ -28,16 +28,19 @@ public class UsuarioControlador {
         this.usuarioServicio = usuarioServicio;
     }
 
+    // GET:: /api/v1/usuarios
     @GetMapping
     public List<Usuario> getAll() {
         return usuarioServicio.getUsuarios();
     }
 
+    // GET:: /api/v1/usuarios/con-reportes/{idUsuario}
     @GetMapping("/con-reportes/{idUsuario}")
     public FullUsuarioResponse getAll(@PathVariable("idUsuario") Long idUsuario) {
         return usuarioServicio.getUsuariosConReportes(idUsuario);
     }
 
+    // GET:: /api/v1/usuarios/{idUsuario}
     @GetMapping("/{idUsuario}")
     public Optional<Usuario> getByID(@PathVariable("idUsuario") Long idUsuario) {
         return usuarioServicio.getUsuario(idUsuario);

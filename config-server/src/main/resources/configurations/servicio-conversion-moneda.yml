@@ -1,12 +1,9 @@
-
 server:
   port: 8050
 
 spring:
-  jpa:
-    hibernate:
-      ddl-auto: none 
-    show-sql: true
+  application:
+    name: servicio-conversion-moneda
 
 eureka:
   client:
@@ -16,10 +13,8 @@ eureka:
     fetch-registry: true
   instance:
     hostname: localhost
-    # instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}} # Hace el ID de instancia más único en Eureka
     prefer-ip-address: true
 
-# Propiedades personalizadas para la API de tasas de cambio
 external:
   api:
     exchangerate:

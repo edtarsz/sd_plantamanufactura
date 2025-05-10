@@ -10,47 +10,41 @@ spring:
       discovery:
         locator:
           enabled: true
+      routes:
+        - id: usuarios
+          uri: lb://USUARIOS
+          predicates:
+            - Path=/api/v1/usuarios/**
 
-      mvc: 
-        routes:
-          - id: usuarios
-            uri: lb://USUARIOS
-            predicates:
-              - Path=/api/v1/usuarios/**
+        - id: reportes
+          uri: lb://REPORTES
+          predicates:
+            - Path=/api/v1/reportes/**
 
-          - id: reportes
-            uri: lb://REPORTES
-            predicates:
-              - Path=/api/v1/reportes/**
+        - id: defectos
+          uri: lb://REPORTES
+          predicates:
+            - Path=/api/v1/defectos/**
 
-          - id: defectos
-            uri: lb://REPORTES
-            predicates:
-              - Path=/api/v1/defectos/**
-
-          - id: servicio-conversion-moneda-route 
-            uri: lb://SERVICIO-CONVERSION-MONEDA
-            predicates:
-              - Path=/api/v1/conversion/**
+        - id: servicio-conversion-moneda
+          uri: lb://SERVICIO-CONVERSION-MONEDA
+          predicates:
+            - Path=/api/v1/conversion/**
 
 eureka:
+  instance:
+    hostname: localhost
+
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
-  instance:
-    hostname: localhost
-    
 
-# --- NIVELES DE LOGGING PARA DEPURACIÓN ---
 logging:
   level:
-    org.springframework.cloud.gateway.server.mvc: DEBUG
-    org.springframework.cloud.gateway.server.mvc.routing: DEBUG
-    org.springframework.web.servlet.DispatcherServlet: DEBUG
-    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG # O TRACE
-    org.springframework.web.servlet.function.server.support.RouterFunctionMapping: DEBUG # O TRACE
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.handler: DEBUG
+    org.springframework.web.reactive.DispatcherHandler: DEBUG
     org.springframework.cloud.loadbalancer: DEBUG
-    com.netflix.discovery: INFO # Puedes ponerlo en DEBUG si sospechas de Eureka
-
+    com.netflix.discovery: INFO

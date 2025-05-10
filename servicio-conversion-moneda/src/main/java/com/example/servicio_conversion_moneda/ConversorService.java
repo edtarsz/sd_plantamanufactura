@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package com.example.servicio_conversion_moneda;
 
 import com.example.servicio_conversion_moneda.dto.FrankfurterResponse;
@@ -17,8 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.Map;
-
+import org.springframework.web.client.RestClientException;
 
 /**
  *
@@ -64,9 +62,8 @@ public class ConversorService {
         } catch (HttpClientErrorException e) {
             System.err.println("Error al llamar a la API de Frankfurter (" + url + "): " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             return null;
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             System.err.println("Error inesperado al obtener tasa de cambio (" + url + "): " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }
@@ -107,4 +104,3 @@ public class ConversorService {
         }
     }
 }
-

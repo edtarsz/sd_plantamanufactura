@@ -2,7 +2,6 @@ package com.example.servicio_conversion_moneda;
 
 import com.example.servicio_conversion_moneda.dto.ConversionResponse;
 import com.example.servicio_conversion_moneda.dto.RateResponse;
-import com.example.servicio_conversion_moneda.ConversorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,9 +36,8 @@ public class ConversorController {
             return ResponseEntity.badRequest().body("La cantidad debe ser un número positivo.");
         }
         if (from == null || from.trim().isEmpty() || to == null || to.trim().isEmpty()) {
-             return ResponseEntity.badRequest().body("Las monedas de origen y destino son requeridas.");
+            return ResponseEntity.badRequest().body("Las monedas de origen y destino son requeridas.");
         }
-
 
         ConversionResponse resultado = conversorService.convertir(from, to, amount);
 
@@ -57,7 +55,7 @@ public class ConversorController {
             @RequestParam String to) {
 
         if (from == null || from.trim().isEmpty() || to == null || to.trim().isEmpty()) {
-             return ResponseEntity.badRequest().body("Las monedas de origen y destino son requeridas.");
+            return ResponseEntity.badRequest().body("Las monedas de origen y destino son requeridas.");
         }
 
         RateResponse tasa = conversorService.obtenerTasaDeCambio(from, to);
