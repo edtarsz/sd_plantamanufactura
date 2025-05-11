@@ -21,7 +21,6 @@ public class UsuarioServicio {
 
     private final UsuarioRepository usuarioRepository;
     private final ReporteClient reporteClient;
-    private final PasswordEncoder passwordEncoder;
 
     public List<Usuario> getUsuarios() {
         return usuarioRepository.findAll();
@@ -32,7 +31,6 @@ public class UsuarioServicio {
     }
 
     public void saveOrUpdate(Usuario usuario) {
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         usuarioRepository.save(usuario);
     }
 

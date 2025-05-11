@@ -8,8 +8,14 @@ import com.example.auth.dto.AuthRequest;
 import com.example.auth.dto.UsuarioRequest;
 import com.example.auth.feign.UsuarioClient;
 import com.example.auth.servicios.AuthServicio;
+import com.example.auth.servicios.JWTServicio;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -37,24 +43,41 @@ public class AuthControlador {
     @Autowired
     private UsuarioClient usuarioClient;
 
-    @PostMapping("/register")
-    public String addNewUser(@RequestBody UsuarioRequest usuarioRequest) {
-        // Encripta la contraseña antes de enviarla al MS de usuario
-        String encodedPassword = new BCryptPasswordEncoder().encode(usuarioRequest.getPassword());
-        usuarioRequest.setPassword(encodedPassword);
+    @Autowired
+    private JWTServicio jwtServicio;
 
-        usuarioClient.createUsuario(usuarioRequest);
-        return "Usuario registrado exitosamente";
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, String>> addNewUser(@RequestBody UsuarioRequest usuarioRequest) {
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            String encodedPassword = new BCryptPasswordEncoder().encode(usuarioRequest.getPassword());
+            usuarioRequest.setPassword(encodedPassword);
+            usuarioClient.createUsuario(usuarioRequest);
+
+            response.put("message", "Usuario registrado exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("error", "Error al registrar: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @PostMapping("/token")
-    public String getToken(@RequestBody AuthRequest authRequest) {
-        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+    public ResponseEntity<Map<String, String>> login(@RequestBody AuthRequest request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword())
+            );
 
-        if (authenticate.isAuthenticated()) {
-            return servicioAuth.generateToken(authRequest.getUsername());
-        } else {
-            throw new RuntimeException("Usuario inválido");
+            String token = jwtServicio.generateToken(request.getUsername());
+            return ResponseEntity.ok(Map.of("token", token));
+
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Credenciales inválidas"));
         }
     }
 

@@ -26,11 +26,7 @@ public class AuthConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                        "/api/v1/usuarios/**",
-                        "/api/v1/usuarios/username/**"
-                ).permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
                 );
         return http.build();
     }

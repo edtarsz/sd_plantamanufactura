@@ -6,6 +6,8 @@ package com.example.usuario;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsuarioControlador {
 
     private final UsuarioServicio usuarioServicio;
+
+    @Autowired
+    UsuarioRepository usuarioRepositorio;
 
     public UsuarioControlador(UsuarioServicio usuarioServicio) {
         this.usuarioServicio = usuarioServicio;
@@ -57,7 +62,10 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/username/{username}")
-    public Optional<Usuario> getByUsername(@PathVariable String username) {
-        return usuarioServicio.getUsuarioByUsername(username);
+    public ResponseEntity<UsuarioResponse> getByUsername(@PathVariable String username) {
+        Optional<Usuario> usuario = usuarioRepositorio.findByUsername(username);
+        return usuario.map(u -> new UsuarioResponse(u.getUsername(), u.getPassword()))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

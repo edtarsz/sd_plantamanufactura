@@ -18,7 +18,8 @@ public class RouteValidator {
 
     // TO DO, Solo debería limitar el acceso solo a los métodos necesarios
     public static final List<String> openApiEndpoints = List.of(
-            "/api/v1/auth/**",
+            "/api/v1/auth/register",
+            "/api/v1/auth/token",
             "/login",
             "/signup",
             "/css/**",

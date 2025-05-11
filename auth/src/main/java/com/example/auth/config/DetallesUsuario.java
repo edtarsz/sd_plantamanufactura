@@ -8,6 +8,7 @@ import com.example.auth.dto.UsuarioResponse;
 import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  *
@@ -18,7 +19,7 @@ public class DetallesUsuario implements UserDetails {
     private String username;
     private String password;
 
-    public DetallesUsuario(UsuarioResponse usuarioResponse) {
+    public DetallesUsuario(UsuarioResponse usuarioResponse, PasswordEncoder encoder) {
         this.username = usuarioResponse.getUsername();
         this.password = usuarioResponse.getPassword();
     }

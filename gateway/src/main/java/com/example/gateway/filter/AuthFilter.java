@@ -33,19 +33,31 @@ public class AuthFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        // Si la ruta es pública, permite el acceso
         if (!routeValidator.isSecured.test(request)) {
             return chain.filter(exchange);
         }
 
-        // Extrae el token del header "Authorization"
+        // Obtener el token del header o de la cookie
         String token = request.getHeaders().getFirst("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
-            return redirectToLogin(exchange); // Redirige si no hay token
+            // Buscar el token en las cookies
+            String cookieHeader = request.getHeaders().getFirst("Cookie");
+            if (cookieHeader != null) {
+                String[] cookies = cookieHeader.split("; ");
+                for (String cookie : cookies) {
+                    if (cookie.startsWith("authToken=")) {
+                        token = "Bearer " + cookie.substring("authToken=".length());
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (token == null || !token.startsWith("Bearer ")) {
+            return redirectToLogin(exchange);
         }
 
         try {
-            // Valida el token JWT
             String jwt = token.substring(7);
             jwtService.validateToken(jwt);
             return chain.filter(exchange);
@@ -57,11 +69,9 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private Mono<Void> redirectToLogin(ServerWebExchange exchange) {
         String path = exchange.getRequest().getPath().toString();
 
-        // Para APIs devuelve 401 (sin redirección)
         if (path.startsWith("/api")) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        } // Para páginas web redirige a /login
-        else {
+        } else {
             exchange.getResponse().setStatusCode(HttpStatus.SEE_OTHER);
             exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
         }

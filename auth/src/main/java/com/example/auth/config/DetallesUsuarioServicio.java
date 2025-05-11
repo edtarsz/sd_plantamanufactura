@@ -11,20 +11,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Ramos
  */
+@Service
 public class DetallesUsuarioServicio implements UserDetailsService {
 
     @Autowired
     private UsuarioClient usuarioClient;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder; 
+
     @Override
     public UserDetails loadUserByUsername(String username) {
         Optional<UsuarioResponse> usuario = usuarioClient.findByUsername(username);
-        return usuario.map(DetallesUsuario::new)
+        return usuario.map(u -> new DetallesUsuario(u, passwordEncoder))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
     }
 }

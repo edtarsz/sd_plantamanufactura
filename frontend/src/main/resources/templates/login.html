@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-
-        <script th:src="@{/js/signup.js}" defer></script>
+        <title>Login</title>
+        <script th:src="@{/js/login.js}" defer></script>
         <link th:href="@{/css/login.css}" rel="stylesheet">
     </head>
-
     <body>
         <main>
             <header>
@@ -19,14 +16,15 @@
 
             <section>
                 <h4>Login</h4>
-                <form action="/req/login" method="POST">
-                    <input type="username" id="username" name="username" placeholder="Username" required>
-                    <input type="password" id="password" name="password" placeholder="Password" required>
-                    <button type="submit" id="submit">Continue</button>
-                    <p>New to LOGO? <a href="/req/signup">Sign Up</a></p>
+                <form id="loginForm">
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <button type="submit" id="submitBtn">Continue</button>
+                    <p>New to LOGO? <a href="/signup">Sign Up</a></p>
                 </form>
+                <div id="errorMessage" class="error-message"></div>
+                <div id="successMessage" class="success-message"></div>
             </section>
         </main>
     </body>
-
 </html>
