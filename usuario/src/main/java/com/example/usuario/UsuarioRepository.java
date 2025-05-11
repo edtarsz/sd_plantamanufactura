@@ -4,6 +4,7 @@
  */
 package com.example.usuario;
 
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,9 +14,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    //  Spring crea funciones para trabajar con la base de datos:
-    //  findAll()
-    //  findById(Long id) 
-    //  save(Usuario usuario) 
-    //  deleteById(Long id)
+
+    Optional<Usuario> findByUsername(String username);
 }

@@ -4,8 +4,8 @@
  */
 package com.example.auth.config;
 
-import com.example.auth.entidades.Usuario;
-import com.example.auth.repositorios.UsuarioRepository;
+import com.example.auth.dto.UsuarioResponse;
+import com.example.auth.feign.UsuarioClient;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,14 +17,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  * @author Ramos
  */
 public class DetallesUsuarioServicio implements UserDetailsService {
-    
+
     @Autowired
-    private UsuarioRepository usuarioRepositorio;
-    
+    private UsuarioClient usuarioClient;
+
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Usuario> usuario = usuarioRepositorio.findByUsername(username);
-        return usuario.map(DetallesUsuario::new).orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con nombre: " + username));
+    public UserDetails loadUserByUsername(String username) {
+        Optional<UsuarioResponse> usuario = usuarioClient.findByUsername(username);
+        return usuario.map(DetallesUsuario::new)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
     }
-    
 }

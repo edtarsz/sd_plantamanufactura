@@ -4,10 +4,7 @@
  */
 package com.example.auth.servicios;
 
-import com.example.auth.entidades.Usuario;
-import com.example.auth.repositorios.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,19 +15,7 @@ import org.springframework.stereotype.Service;
 public class AuthServicio {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
     private JWTServicio jwtServicio;
-
-    public String saveUsuario(Usuario usuario) {
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        usuarioRepository.save(usuario);
-        return "Usuario guardado en el sistema";
-    }
 
     public String generateToken(String username) {
         return jwtServicio.generateToken(username);

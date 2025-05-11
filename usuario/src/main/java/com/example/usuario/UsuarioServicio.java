@@ -4,11 +4,11 @@
  */
 package com.example.usuario;
 
-import com.example.client.ReporteClient;
+import com.example.usuario.client.ReporteClient;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,11 +19,9 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class UsuarioServicio {
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
-
-    @Autowired
-    ReporteClient reporteClient;
+    private final UsuarioRepository usuarioRepository;
+    private final ReporteClient reporteClient;
+    private final PasswordEncoder passwordEncoder;
 
     public List<Usuario> getUsuarios() {
         return usuarioRepository.findAll();
@@ -34,6 +32,7 @@ public class UsuarioServicio {
     }
 
     public void saveOrUpdate(Usuario usuario) {
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         usuarioRepository.save(usuario);
     }
 
@@ -55,5 +54,9 @@ public class UsuarioServicio {
                 .username(usuario.getUsername())
                 .reportes(reportes)
                 .build();
+    }
+
+    public Optional<Usuario> getUsuarioByUsername(String username) {
+        return usuarioRepository.findByUsername(username);
     }
 }

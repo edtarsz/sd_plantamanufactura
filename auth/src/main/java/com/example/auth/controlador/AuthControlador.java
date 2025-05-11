@@ -5,12 +5,14 @@
 package com.example.auth.controlador;
 
 import com.example.auth.dto.AuthRequest;
-import com.example.auth.entidades.Usuario;
+import com.example.auth.dto.UsuarioRequest;
+import com.example.auth.feign.UsuarioClient;
 import com.example.auth.servicios.AuthServicio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,9 +34,17 @@ public class AuthControlador {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private UsuarioClient usuarioClient;
+
     @PostMapping("/register")
-    public String addNewUser(@RequestBody Usuario usuario) {
-        return servicioAuth.saveUsuario(usuario);
+    public String addNewUser(@RequestBody UsuarioRequest usuarioRequest) {
+        // Encripta la contraseña antes de enviarla al MS de usuario
+        String encodedPassword = new BCryptPasswordEncoder().encode(usuarioRequest.getPassword());
+        usuarioRequest.setPassword(encodedPassword);
+
+        usuarioClient.createUsuario(usuarioRequest);
+        return "Usuario registrado exitosamente";
     }
 
     @PostMapping("/token")

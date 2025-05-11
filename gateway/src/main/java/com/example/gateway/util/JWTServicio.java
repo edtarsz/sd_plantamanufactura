@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * @author Ramos
  */
 @Component
-public class JWTUtil {
+public class JWTServicio {
 
     private static final String SECRET = "A213SD331213313332132DA213SD331213313332132D";
 

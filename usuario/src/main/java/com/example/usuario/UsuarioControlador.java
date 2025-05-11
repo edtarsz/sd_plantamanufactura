@@ -34,12 +34,6 @@ public class UsuarioControlador {
         return usuarioServicio.getUsuarios();
     }
 
-    // GET:: /api/v1/usuarios/con-reportes/{idUsuario}
-    @GetMapping("/con-reportes/{idUsuario}")
-    public FullUsuarioResponse getAll(@PathVariable("idUsuario") Long idUsuario) {
-        return usuarioServicio.findAllReportesByUsuario(idUsuario);
-    }
-
     // GET:: /api/v1/usuarios/{idUsuario}
     @GetMapping("/{idUsuario}")
     public Optional<Usuario> getByID(@PathVariable("idUsuario") Long idUsuario) {
@@ -54,5 +48,16 @@ public class UsuarioControlador {
     @DeleteMapping("/{idUsuario}")
     public void delete(@PathVariable("idUsuario") Long idUsuario) {
         usuarioServicio.delete(idUsuario);
+    }
+
+    // GET:: /api/v1/usuarios/con-reportes/{idUsuario}
+    @GetMapping("/con-reportes/{idUsuario}")
+    public FullUsuarioResponse getAll(@PathVariable("idUsuario") Long idUsuario) {
+        return usuarioServicio.findAllReportesByUsuario(idUsuario);
+    }
+
+    @GetMapping("/username/{username}")
+    public Optional<Usuario> getByUsername(@PathVariable String username) {
+        return usuarioServicio.getUsuarioByUsername(username);
     }
 }

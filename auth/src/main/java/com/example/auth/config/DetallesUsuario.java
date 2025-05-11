@@ -4,7 +4,7 @@
  */
 package com.example.auth.config;
 
-import com.example.auth.entidades.Usuario;
+import com.example.auth.dto.UsuarioResponse;
 import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,9 +18,9 @@ public class DetallesUsuario implements UserDetails {
     private String username;
     private String password;
 
-    public DetallesUsuario(Usuario usuario) {
-        this.username = usuario.getUsername();
-        this.password = usuario.getPassword();
+    public DetallesUsuario(UsuarioResponse usuarioResponse) {
+        this.username = usuarioResponse.getUsername();
+        this.password = usuarioResponse.getPassword();
     }
 
     @Override

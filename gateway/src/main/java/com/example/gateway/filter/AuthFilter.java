@@ -4,7 +4,7 @@
  */
 package com.example.gateway.filter;
 
-import com.example.gateway.util.JWTUtil;
+import com.example.gateway.util.JWTServicio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -24,7 +24,7 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
     @Autowired
     private RouteValidator routeValidator;
     @Autowired
-    private JWTUtil jwtUtil;
+    private JWTServicio jwtUtil;
 
     public AuthFilter() {
         super(Config.class);
