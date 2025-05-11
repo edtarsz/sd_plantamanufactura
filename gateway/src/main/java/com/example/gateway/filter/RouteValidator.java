@@ -16,10 +16,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class RouteValidator {
 
+    // TO DO, Solo debería limitar el acceso solo a los métodos necesarios
     public static final List<String> openApiEndpoints = List.of(
-            "/api/v1/auth/register",
-            "/api/v1/auth/token",
-            "/api/v1/auth/eureka"
+            "/api/v1/auth/**",
+            "/login",
+            "/signup",
+            "/css/**",
+            "/js/**",
+            "/img/**"
     );
 
     public Predicate<ServerHttpRequest> isSecured

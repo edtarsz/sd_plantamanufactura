@@ -5,58 +5,72 @@
 package com.example.gateway.filter;
 
 import com.example.gateway.util.JWTServicio;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+import java.net.URI;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  *
  * @author Ramos
  */
 @Component
-public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> {
+public class AuthFilter implements GlobalFilter, Ordered {
 
-//    @Autowired
-//    private RestTemplate restTemplate;
+    @Autowired
+    private JWTServicio jwtService;
+
     @Autowired
     private RouteValidator routeValidator;
-    @Autowired
-    private JWTServicio jwtUtil;
 
-    public AuthFilter() {
-        super(Config.class);
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+
+        // Si la ruta es pública, permite el acceso
+        if (!routeValidator.isSecured.test(request)) {
+            return chain.filter(exchange);
+        }
+
+        // Extrae el token del header "Authorization"
+        String token = request.getHeaders().getFirst("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            return redirectToLogin(exchange); // Redirige si no hay token
+        }
+
+        try {
+            // Valida el token JWT
+            String jwt = token.substring(7);
+            jwtService.validateToken(jwt);
+            return chain.filter(exchange);
+        } catch (Exception e) {
+            return redirectToLogin(exchange);
+        }
+    }
+
+    private Mono<Void> redirectToLogin(ServerWebExchange exchange) {
+        String path = exchange.getRequest().getPath().toString();
+
+        // Para APIs devuelve 401 (sin redirección)
+        if (path.startsWith("/api")) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        } // Para páginas web redirige a /login
+        else {
+            exchange.getResponse().setStatusCode(HttpStatus.SEE_OTHER);
+            exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
+        }
+
+        return exchange.getResponse().setComplete();
     }
 
     @Override
-    public GatewayFilter apply(Config config) {
-        return ((exchange, chain) -> {
-            if (routeValidator.isSecured.test(exchange.getRequest())) {
-                if (!exchange.getRequest().getHeaders().containsKey(AUTHORIZATION)) {
-                    throw new RuntimeException("No cuenta con la autorización en el header.");
-                }
-
-                String authHeader = exchange.getRequest().getHeaders().get(AUTHORIZATION).get(0);
-                if (authHeader != null && authHeader.startsWith("Bearer")) {
-                    authHeader = authHeader.substring(7);
-                }
-                try {
-                    //REST CALL TO AUTH
-                    // restTemplate.getForObject("http://localhost/api/v1/auth/validate?token" + authHeader, String.class);
-                    jwtUtil.validateToken(authHeader);
-
-                } catch (RestClientException e) {
-                    System.out.println("Acceso inválido");
-                    throw new RuntimeException("Unauthorized acces to Application.");
-                }
-            }
-            return chain.filter(exchange);
-        });
-    }
-
-    public static class Config {
-
+    public int getOrder() {
+        return -1;
     }
 }

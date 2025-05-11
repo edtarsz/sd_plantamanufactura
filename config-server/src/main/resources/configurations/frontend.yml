@@ -1,0 +1,28 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: frontend
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    enabled: true
+
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+eureka:
+  instance:
+    hostname: localhost
+
+  client:
+    register-with-eureka: true
+    fetch-registry: false 
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

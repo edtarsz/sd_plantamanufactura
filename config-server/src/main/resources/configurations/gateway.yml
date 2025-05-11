@@ -11,6 +11,16 @@ spring:
         locator:
           enabled: true
       routes:
+        - id: auth
+          uri: lb://AUTH
+          predicates:
+            - Path=/api/v1/auth/**
+            
+        - id: frontend-public
+          uri: lb://FRONTEND
+          predicates:
+            - Path=/login, /signup, /css/**, /js/**, /img/**
+
         - id: usuarios
           uri: lb://USUARIOS
           predicates:
@@ -20,8 +30,6 @@ spring:
           uri: lb://REPORTES
           predicates:
             - Path=/api/v1/reportes/**
-          filters:
-            - AuthFilter
 
         - id: defectos
           uri: lb://REPORTES
@@ -32,16 +40,15 @@ spring:
           uri: lb://SERVICIO-CONVERSION-MONEDA
           predicates:
             - Path=/api/v1/conversion/**
-            
-        - id: auth
-          uri: lb://AUTH
+
+        - id: frontend
+          uri: lb://FRONTEND
           predicates:
-            - Path=/api/v1/auth/**    
+            - Path=/**
 
 eureka:
   instance:
     hostname: localhost
-
   client:
     register-with-eureka: true
     fetch-registry: true
