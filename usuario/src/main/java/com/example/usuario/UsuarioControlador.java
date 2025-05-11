@@ -37,7 +37,7 @@ public class UsuarioControlador {
     // GET:: /api/v1/usuarios/con-reportes/{idUsuario}
     @GetMapping("/con-reportes/{idUsuario}")
     public FullUsuarioResponse getAll(@PathVariable("idUsuario") Long idUsuario) {
-        return usuarioServicio.getUsuariosConReportes(idUsuario);
+        return usuarioServicio.findAllReportesByUsuario(idUsuario);
     }
 
     // GET:: /api/v1/usuarios/{idUsuario}

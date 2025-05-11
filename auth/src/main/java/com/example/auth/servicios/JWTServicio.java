@@ -1,0 +1,54 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.example.auth.servicios;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.crypto.SecretKey;
+import org.springframework.stereotype.Component;
+
+/**
+ *
+ * @author Ramos
+ */
+@Component
+public class JWTServicio {
+
+    private static final String SECRET = "A213SD331213313332132DA213SD331213313332132D";
+
+    public Jws<Claims> validateToken(final String token) {
+        return Jwts
+                .parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token);
+    }
+
+    public String generateToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username);
+    }
+
+    private String createToken(Map<String, Object> claims, String username) {
+        return Jwts.builder()
+                .claims(claims)
+                .subject(username)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30)) // 30 min
+                .signWith(getSignKey())
+                .compact();
+    }
+
+    private SecretKey getSignKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+}

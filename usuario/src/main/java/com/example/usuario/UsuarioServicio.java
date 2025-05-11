@@ -41,7 +41,7 @@ public class UsuarioServicio {
         usuarioRepository.deleteById(id);
     }
 
-    public FullUsuarioResponse getUsuariosConReportes(Long idUsuario) {
+    public FullUsuarioResponse findAllReportesByUsuario(Long idUsuario) {
         var usuario = usuarioRepository.findById(idUsuario).orElse(
                 Usuario.builder()
                         .fullName("NOT_FOUND")
