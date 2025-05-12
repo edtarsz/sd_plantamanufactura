@@ -1,8 +1,8 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Enum.java to edit this template
  */
-package com.example.reporte.piezas;
+package com.example.reporte.tipodedefecto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,13 +26,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "pieza")
-public class Pieza {
+@Table(name = "tipo_defecto")
+public class TipoDefecto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idPieza")
-    private Long idPieza;
+    @Column(name = "idTipoDefecto")
+    private Long idTipoDefecto;
 
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;

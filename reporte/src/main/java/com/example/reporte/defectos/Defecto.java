@@ -4,7 +4,9 @@
  */
 package com.example.reporte.defectos;
 
-import com.example.reporte.tipodedefecto.TipoDeDefecto;
+import com.example.reporte.piezas.Pieza;
+import com.example.reporte.tipodedefecto.TipoDefecto;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +14,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,11 +50,11 @@ public class Defecto {
     @Column(name = "cantidad_piezas", nullable = false)
     private int cantidad_piezas;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_defecto", nullable = false)
-    private TipoDeDefecto tipoDefecto;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "idTipoDefecto", referencedColumnName = "idTipoDefecto")
+    private TipoDefecto tipoDefecto;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "idPieza", referencedColumnName = "idPieza")
-//    private Pieza pieza;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "idPieza", referencedColumnName = "idPieza")
+    private Pieza pieza;
 }

@@ -14,9 +14,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class RoutingController {
 
-    @GetMapping("/index")
-    public String index() {
-        return "index";
+    @GetMapping("/generarReportes")
+    public String generarReportes() {
+        return "generarReportes";
+    }
+
+    @GetMapping("/catalogoDefectos")
+    public String catalogoDefectos() {
+        return "catalogoDefectos";
+    }
+
+    @GetMapping("/registroDefectos")
+    public String registroDefectos() {
+        return "registroDefectos";
     }
 
     @GetMapping("/login")

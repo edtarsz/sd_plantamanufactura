@@ -1,122 +1,237 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
 
-    const quantityInput = document.querySelector('.quantity-input');
+    // Elementos UI
+    const quantityInput = document.getElementById('cantidad');
     const decreaseBtn = document.querySelector('.quantity-btn.decrease');
     const increaseBtn = document.querySelector('.quantity-btn.increase');
-
-    decreaseBtn.addEventListener('click', () => {
-        let currentValue = parseInt(quantityInput.value);
-        if (currentValue > 1) {
-            quantityInput.value = currentValue - 1;
-        }
-    });
-
-    increaseBtn.addEventListener('click', () => {
-        let currentValue = parseInt(quantityInput.value);
-        quantityInput.value = currentValue + 1;
-    });
-
-    const currencyToggle = document.querySelector('.currency-toggle');
-    const currencyBtns = currencyToggle.querySelectorAll('.currency-btn');
-
-    currencyToggle.addEventListener('click', (event) => {
-        if (event.target.classList.contains('currency-btn')) {
-            currencyBtns.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            console.log('Moneda seleccionada:', event.target.textContent);
-        }
-    });
-
+    const currencyBtns = document.querySelectorAll('.currency-btn');
     const clearBtn = document.querySelector('.clear-btn');
-    const formSection = document.querySelector('.form-section'); // Contenedor del formulario
-
-    clearBtn.addEventListener('click', () => {
-        const inputs = formSection.querySelectorAll('input[type="text"], input[type="radio"], select, textarea');
-        inputs.forEach(input => {
-            if (input.type === 'radio') {
-                input.checked = false;
-            } else if (input.tagName === 'SELECT') {
-                 if (input.options.length > 0) {
-                    input.selectedIndex = 0;
-                 }
-            } else if (input.classList.contains('quantity-input')){
-                 input.value = '1';
-            }
-             else {
-                input.value = '';
-            }
-        });
-         currencyBtns.forEach(btn => btn.classList.remove('active'));
-         document.querySelector('.currency-toggle .currency-btn:first-child').classList.add('active'); // Asume USD es el primero
-
-        console.log('Formulario limpiado');
-    });
-
-
     const processBtn = document.querySelector('.process-btn');
-
-    processBtn.addEventListener('click', () => {
-        console.log('Procesando defectos (simulación)...');
-         const lote = document.querySelector('.search-input').value;
-         const piezaSelect = document.querySelector('.form-group select');
-         const pieza = piezaSelect.options[piezaSelect.selectedIndex].text;
-         const defectoRadio = document.querySelector('.radio-option input[name="defect"]:checked');
-         const tipoDefecto = defectoRadio ? defectoRadio.labels[0].textContent : 'N/A';
-         const detalles = document.querySelector('.form-group textarea').value;
-         const cantidad = document.querySelector('.quantity-input').value;
-         const monedaActiva = document.querySelector('.currency-btn.active').textContent;
-
-         if (!lote || !defectoRadio) {
-             alert('Por favor, complete ID del Lote y Tipo de Defecto.');
-             return;
-         }
-
-         console.log('Datos Recogidos:', { lote, pieza, tipoDefecto, detalles, cantidad, monedaActiva });
-
-         alert('Defecto procesado (simulado). Revisar la consola.');
-    });
-
     const rejectBtn = document.querySelector('.reject-btn');
-
-    rejectBtn.addEventListener('click', () => {
-        console.log('Registrando pieza rechazada (simulación)...');
-         // Recoger TODOS los datos
-         // y enviarlos al backend usando fetch
-         alert('Simulación de registro de pieza rechazada.');
-
-        /* Ejemplo Fetch (se requiere el endpoint):
-        const datosFinales = { ... }; // Objeto con todos los datos a enviar
-        fetch('/api/v1/tu-endpoint-registro', {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify(datosFinales)
-         })
-         .then(response => response.json())
-         .then(data => {
-             console.log('Éxito:', data);
-             alert('Registro exitoso!');
-             // Limpiar todo o redirigir
-         })
-         .catch(error => {
-             console.error('Error:', error);
-             alert('Error en el registro.');
-         });
-        */
-    });
-
     const searchBtn = document.querySelector('.search-btn');
-    const searchInput = document.querySelector('.search-input');
+    const piezaSelect = document.getElementById('piezaSelect');
+    const defectosContainer = document.getElementById('defectosContainer');
 
-    searchBtn.addEventListener('click', () => {
-        const loteId = searchInput.value;
-        if (loteId) {
-            console.log(`Buscando información del lote: ${loteId} (simulación)...`);
+    // Cargar datos iniciales
+    await cargarPiezas();
+    await cargarTiposDefecto();
 
-            alert(`Simulación de búsqueda para lote: ${loteId}`);
-        } else {
-            alert('Ingrese un ID de Lote para buscar.');
-        }
+    // Event Listeners
+    decreaseBtn.addEventListener('click', () => ajustarCantidad(-1));
+    increaseBtn.addEventListener('click', () => ajustarCantidad(1));
+
+    currencyBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            currencyBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
     });
 
+    clearBtn.addEventListener('click', limpiarFormulario);
+    processBtn.addEventListener('click', procesarDefecto);
+    rejectBtn.addEventListener('click', registrarRechazo);
+    searchBtn.addEventListener('click', buscarLote);
 
+    // Funciones
+    function ajustarCantidad(valor) {
+        let nuevaCantidad = parseInt(quantityInput.value) + valor;
+        if (nuevaCantidad < 1)
+            nuevaCantidad = 1;
+        quantityInput.value = nuevaCantidad;
+    }
+
+    async function cargarPiezas() {
+        try {
+            const response = await fetch('/api/v1/piezas', {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            const piezas = await response.json();
+
+            piezas.forEach(pieza => {
+                const option = document.createElement('option');
+                option.value = pieza.idPieza;
+                option.textContent = pieza.nombre;
+                piezaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando piezas:', error);
+        }
+    }
+
+    async function cargarTiposDefecto() {
+        try {
+            const response = await fetch('/api/v1/tipos-defecto', {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            const tipos = await response.json();
+
+            tipos.forEach((tipo, index) => {
+                const divRow = document.createElement('div');
+                divRow.className = 'radio-row';
+
+                const divOption = document.createElement('div');
+                divOption.className = 'radio-option';
+
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.id = `defecto${index}`;
+                input.name = 'defecto';
+                input.value = tipo;
+
+                const label = document.createElement('label');
+                label.htmlFor = `defecto${index}`;
+                label.textContent = tipo;
+
+                divOption.appendChild(input);
+                divOption.appendChild(label);
+                divRow.appendChild(divOption);
+                defectosContainer.appendChild(divRow);
+            });
+        } catch (error) {
+            console.error('Error cargando tipos de defecto:', error);
+        }
+    }
+
+    async function procesarDefecto() {
+        const loteId = document.getElementById('loteId').value;
+        const piezaId = piezaSelect.value;
+        const defectoTipo = document.querySelector('input[name="defecto"]:checked')?.value;
+        const detalles = document.getElementById('detalles').value;
+        const cantidad = parseInt(quantityInput.value);
+        const moneda = document.querySelector('.currency-btn.active').textContent;
+
+        if (!validarFormulario(loteId, piezaId, defectoTipo, detalles))
+            return;
+
+        try {
+            const reporteData = {
+                idUsuario: obtenerUsuarioId(token),
+                defectos: [{
+                        tipoDefecto: defectoTipo,
+                        detalles: detalles,
+                        cantidad_piezas: cantidad,
+                        pieza: {idPieza: piezaId},
+                        costo: 0 // Se calculará en backend
+                    }],
+                moneda: moneda,
+                loteId: loteId
+            };
+
+            const response = await fetch('/api/v1/reportes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(reporteData)
+            });
+
+            if (!response.ok)
+                throw new Error(await response.text());
+
+            const reporteCreado = await response.json();
+            actualizarResumen(reporteCreado);
+            mostrarExito('Defecto registrado exitosamente!');
+
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarError(error.message || 'Error al procesar defecto');
+        }
+    }
+
+    function validarFormulario(loteId, piezaId, defectoTipo, detalles) {
+        if (!loteId) {
+            mostrarError('Ingrese el ID del Lote');
+            return false;
+        }
+        if (!piezaId) {
+            mostrarError('Seleccione una pieza');
+            return false;
+        }
+        if (!defectoTipo) {
+            mostrarError('Seleccione un tipo de defecto');
+            return false;
+        }
+        if (!detalles) {
+            mostrarError('Ingrese los detalles del defecto');
+            return false;
+        }
+        return true;
+    }
+
+    function obtenerUsuarioId(token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.sub; // Asegurar que el JWT contenga el ID de usuario en "sub"
+    }
+
+    function actualizarResumen(reporte) {
+        document.getElementById('resumenLote').textContent = reporte.loteId;
+        document.getElementById('resumenCosto').textContent =
+                `${reporte.costoTotal.toFixed(2)} ${reporte.moneda}`;
+        document.getElementById('resumenPieza').textContent =
+                reporte.defectos[0].pieza.nombre;
+        document.getElementById('resumenDefecto').textContent =
+                reporte.defectos[0].tipoDefecto;
+        document.getElementById('resumenCantidad').textContent =
+                `x${reporte.defectos[0].cantidad_piezas}`;
+        document.getElementById('resumenDetalles').textContent =
+                reporte.defectos[0].detalles;
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('loteId').value = '';
+        piezaSelect.selectedIndex = 0;
+        document.querySelectorAll('input[name="defecto"]').forEach(input => input.checked = false);
+        document.getElementById('detalles').value = '';
+        quantityInput.value = 1;
+        currencyBtns[0].click();
+        document.querySelectorAll('.summary-value').forEach(el => el.textContent = '-');
+    }
+
+    function mostrarError(mensaje) {
+        const errorElement = document.createElement('div');
+        errorElement.className = 'error-message';
+        errorElement.textContent = mensaje;
+        document.body.appendChild(errorElement);
+        setTimeout(() => errorElement.remove(), 5000);
+    }
+
+    function mostrarExito(mensaje) {
+        const successElement = document.createElement('div');
+        successElement.className = 'success-message';
+        successElement.textContent = mensaje;
+        document.body.appendChild(successElement);
+        setTimeout(() => successElement.remove(), 5000);
+    }
+
+    async function buscarLote() {
+        const loteId = document.getElementById('loteId').value;
+        if (!loteId)
+            return mostrarError('Ingrese un ID de Lote');
+
+        try {
+            const response = await fetch(`/api/v1/lotes/${loteId}`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+
+            if (!response.ok)
+                throw new Error('Lote no encontrado');
+
+            const lote = await response.json();
+            mostrarExito(`Lote encontrado: ${lote.nombre}`);
+
+        } catch (error) {
+            mostrarError(error.message);
+        }
+    }
+
+    async function registrarRechazo() {
+        // Implementación similar a procesarDefecto con lógica específica
+        mostrarExito('Pieza rechazada registrada (simulación)');
+    }
 });

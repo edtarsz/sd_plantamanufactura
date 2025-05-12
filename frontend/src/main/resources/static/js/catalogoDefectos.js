@@ -61,15 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Datos de ejemplo de mientras
             await new Promise(resolve => setTimeout(resolve, 500));
             const defectos = [
-                { id: 1, descripcion: 'Rayadura Superficial' },
-                { id: 2, descripcion: 'Mancha de Grasa' },
-                { id: 3, descripcion: 'Pieza Rota' },
-                { id: 4, descripcion: 'Etiqueta Incorrecta' }
+                {id: 1, descripcion: 'Rayadura Superficial'},
+                {id: 2, descripcion: 'Mancha de Grasa'},
+                {id: 3, descripcion: 'Pieza Rota'},
+                {id: 4, descripcion: 'Etiqueta Incorrecta'}
             ];
 
             defectosListContainer.innerHTML = '';
             if (defectos.length === 0) {
-                 defectosListContainer.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #555;">No hay defectos en el catálogo.</div>';
+                defectosListContainer.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #555;">No hay defectos en el catálogo.</div>';
             } else {
                 defectos.forEach(defecto => {
                     const itemElement = crearDefectoItem(defecto);
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error cargando defectos:', error);
-             defectosListContainer.innerHTML = `<div class="loading-placeholder" style="text-align: center; padding: 20px; color: red;">Error al cargar defectos: ${error.message}</div>`;
+            defectosListContainer.innerHTML = `<div class="loading-placeholder" style="text-align: center; padding: 20px; color: red;">Error al cargar defectos: ${error.message}</div>`;
         }
     }
 
@@ -106,8 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // if (!response.ok) throw new Error('Error al añadir');
             // const nuevoDefecto = await response.json(); // El backend debería devolver el nuevo defecto con su ID
 
-             await new Promise(resolve => setTimeout(resolve, 300));
-             console.log('Defecto añadido (simulado). ID asignado:', Math.floor(Math.random() * 1000));
+            await new Promise(resolve => setTimeout(resolve, 300));
+            console.log('Defecto añadido (simulado). ID asignado:', Math.floor(Math.random() * 1000));
 
             nuevoDefectoTextarea.value = '';
             cargarDefectos();
@@ -125,12 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
     defectosListContainer.addEventListener('click', async (event) => {
         const targetButton = event.target.closest('.action-btn');
 
-        if (!targetButton) return;
+        if (!targetButton)
+            return;
 
         const defectoItem = targetButton.closest('.defecto-item');
         const defectoId = defectoItem.dataset.idDefecto;
 
-        if (!defectoId) return;
+        if (!defectoId)
+            return;
 
         // Acción: Eliminar
         if (targetButton.classList.contains('delete-btn')) {
@@ -146,11 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     await new Promise(resolve => setTimeout(resolve, 300));
                     console.log('Defecto eliminado (simulado).');
 
-                     cargarDefectos();
+                    cargarDefectos();
 
                 } catch (error) {
-                     console.error('Error eliminando defecto:', error);
-                     alert(`Error al eliminar defecto: ${error.message}`);
+                    console.error('Error eliminando defecto:', error);
+                    alert(`Error al eliminar defecto: ${error.message}`);
                 }
             }
         }

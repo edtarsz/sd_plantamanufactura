@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.cookie = `authToken=${data.token}; path=/; Secure; SameSite=Strict`;
 
             // Forzar recarga completa para aplicar seguridad
-            window.location.replace('/index');
+            window.location.replace('/generarReportes');
 
         } catch (error) {
             showError(error.message || 'Error en el servidor');
