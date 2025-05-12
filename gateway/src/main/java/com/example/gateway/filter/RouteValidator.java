@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 
 /**
  *
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class RouteValidator {
 
-    // TO DO, Solo debería limitar el acceso solo a los métodos necesarios
     public static final List<String> openApiEndpoints = List.of(
             "/api/v1/auth/register",
             "/api/v1/auth/token",
@@ -27,9 +27,10 @@ public class RouteValidator {
             "/img/**"
     );
 
-    public Predicate<ServerHttpRequest> isSecured
-            = request -> openApiEndpoints
-                    .stream()
-                    .noneMatch(uri -> request.getURI().getPath().contains(uri));
+    public Predicate<ServerHttpRequest> isSecured = request -> {
+        String path = request.getURI().getPath();
+        return openApiEndpoints.stream()
+                .noneMatch(pattern -> new AntPathMatcher().match(pattern, path));
+    };
 
 }

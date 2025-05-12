@@ -64,7 +64,10 @@ public class UsuarioControlador {
     @GetMapping("/username/{username}")
     public ResponseEntity<UsuarioResponse> getByUsername(@PathVariable String username) {
         Optional<Usuario> usuario = usuarioRepositorio.findByUsername(username);
-        return usuario.map(u -> new UsuarioResponse(u.getUsername(), u.getPassword()))
+        return usuario.map(u -> new UsuarioResponse(
+                u.getIdUsuario(),
+                u.getUsername(),
+                u.getPassword()))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

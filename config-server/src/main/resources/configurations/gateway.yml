@@ -11,15 +11,15 @@ spring:
         locator:
           enabled: true
       routes:
-        - id: auth
-          uri: lb://AUTH
-          predicates:
-            - Path=/api/v1/auth/**
-            
         - id: frontend-public
           uri: lb://FRONTEND
           predicates:
             - Path=/login, /signup, /css/**, /js/**, /img/**
+            
+        - id: auth
+          uri: lb://AUTH
+          predicates:
+            - Path=/api/v1/auth/**
 
         - id: usuarios
           uri: lb://USUARIOS
@@ -35,6 +35,16 @@ spring:
           uri: lb://REPORTES
           predicates:
             - Path=/api/v1/defectos/**
+            
+        - id: piezas
+          uri: lb://REPORTES
+          predicates:
+            - Path=/api/v1/piezas/**
+            
+        - id: tipo-defectos
+          uri: lb://REPORTES
+          predicates:
+            - Path=/api/v1/tipo-defectos/**    
 
         - id: servicio-conversion-moneda
           uri: lb://SERVICIO-CONVERSION-MONEDA

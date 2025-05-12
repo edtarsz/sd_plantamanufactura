@@ -25,7 +25,7 @@ public class DetallesUsuarioServicio implements UserDetailsService {
     private UsuarioClient usuarioClient;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; 
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) {
