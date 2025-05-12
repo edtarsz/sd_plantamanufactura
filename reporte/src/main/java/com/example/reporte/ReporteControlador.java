@@ -45,8 +45,9 @@ public class ReporteControlador {
     }
 
     @PostMapping
-    public void saveOrUpdate(@RequestBody Reporte reporte) {
-        reporteServicio.saveOrUpdate(reporte);
+    public ResponseEntity<Reporte> saveOrUpdate(@RequestBody Reporte reporte) {
+        Reporte savedReporte = reporteServicio.saveOrUpdate(reporte);
+        return ResponseEntity.ok(savedReporte);
     }
 
     @DeleteMapping("/{idReporte}")

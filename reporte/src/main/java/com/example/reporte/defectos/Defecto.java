@@ -50,11 +50,11 @@ public class Defecto {
     @Column(name = "cantidad_piezas", nullable = false)
     private int cantidad_piezas;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "idTipoDefecto", referencedColumnName = "idTipoDefecto")
     private TipoDefecto tipoDefecto;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "idPieza", referencedColumnName = "idPieza")
     private Pieza pieza;
 }

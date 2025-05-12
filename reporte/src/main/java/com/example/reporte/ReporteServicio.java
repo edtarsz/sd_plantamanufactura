@@ -4,6 +4,8 @@
  */
 package com.example.reporte;
 
+import com.example.reporte.piezas.Pieza;
+import com.example.reporte.piezas.PiezaRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -21,6 +23,9 @@ public class ReporteServicio {
     @Autowired
     ReporteRepository reporteRepository;
 
+    @Autowired
+    PiezaRepository piezaRepository;
+
     public List<Reporte> getReportes() {
         return reporteRepository.findAll();
     }
@@ -29,15 +34,21 @@ public class ReporteServicio {
         return reporteRepository.findById(id);
     }
 
-    public void saveOrUpdate(Reporte reporte) {
-        reporteRepository.save(reporte);
+    public Reporte saveOrUpdate(Reporte reporte) {
+        reporte.getDefectos().forEach(defecto -> {
+            Pieza pieza = piezaRepository.findById(defecto.getPieza().getIdPieza())
+                    .orElseThrow(() -> new RuntimeException("Pieza no encontrada"));
+            defecto.setPieza(pieza);
+        });
+
+        return reporteRepository.save(reporte);
     }
 
     public void delete(Long id) {
         reporteRepository.deleteById(id);
     }
-    
-    public List<Reporte> findAllReportesByUsuario(Long idUsuario){
+
+    public List<Reporte> findAllReportesByUsuario(Long idUsuario) {
         return reporteRepository.findAllReportesByIdUsuario(idUsuario);
     }
 }

@@ -5,6 +5,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // Variables globales
+    let piezasList = [];
+    let tiposDefectoList = [];
+
+    let currentReport = {
+        loteId: null,
+        moneda: null,
+        defectos: [],
+        idUsuario: obtenerUsuarioId(token)
+    };
+
     // Elementos UI
     const quantityInput = document.getElementById('cantidad');
     const decreaseBtn = document.querySelector('.quantity-btn.decrease');
@@ -13,9 +24,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const clearBtn = document.querySelector('.clear-btn');
     const processBtn = document.querySelector('.process-btn');
     const rejectBtn = document.querySelector('.reject-btn');
-    const searchBtn = document.querySelector('.search-btn');
     const piezaSelect = document.getElementById('piezaSelect');
     const defectosContainer = document.getElementById('defectosContainer');
+    const defectosResumen = document.getElementById('defectosResumen');
 
     // Cargar datos iniciales
     await cargarPiezas();
@@ -24,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Event Listeners
     decreaseBtn.addEventListener('click', () => ajustarCantidad(-1));
     increaseBtn.addEventListener('click', () => ajustarCantidad(1));
-
     currencyBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             currencyBtns.forEach(b => b.classList.remove('active'));
@@ -35,14 +45,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearBtn.addEventListener('click', limpiarFormulario);
     processBtn.addEventListener('click', procesarDefecto);
     rejectBtn.addEventListener('click', registrarRechazo);
-    searchBtn.addEventListener('click', buscarLote);
 
     // Funciones
     function ajustarCantidad(valor) {
         let nuevaCantidad = parseInt(quantityInput.value) + valor;
-        if (nuevaCantidad < 1)
-            nuevaCantidad = 1;
-        quantityInput.value = nuevaCantidad;
+        quantityInput.value = nuevaCantidad < 1 ? 1 : nuevaCantidad;
     }
 
     async function cargarPiezas() {
@@ -50,9 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const response = await fetch('/api/v1/piezas', {
                 headers: {'Authorization': `Bearer ${token}`}
             });
-            const piezas = await response.json();
-
-            piezas.forEach(pieza => {
+            piezasList = await response.json();
+            piezasList.forEach(pieza => {
                 const option = document.createElement('option');
                 option.value = pieza.idPieza;
                 option.textContent = pieza.nombre;
@@ -60,20 +66,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         } catch (error) {
             console.error('Error cargando piezas:', error);
+            mostrarError('No se pudieron cargar las piezas');
         }
     }
 
     async function cargarTiposDefecto() {
         try {
-            const response = await fetch('/api/v1/tipos-defecto', {
+            // Nota: Se cambió la URL de endpoint a tipo-defectos según el ejemplo
+            const response = await fetch('/api/v1/tipo-defectos', {
                 headers: {'Authorization': `Bearer ${token}`}
             });
-            const tipos = await response.json();
-
-            tipos.forEach((tipo, index) => {
+            tiposDefectoList = await response.json();
+            tiposDefectoList.forEach((tipo, index) => {
                 const divRow = document.createElement('div');
                 divRow.className = 'radio-row';
-
                 const divOption = document.createElement('div');
                 divOption.className = 'radio-option';
 
@@ -81,11 +87,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 input.type = 'radio';
                 input.id = `defecto${index}`;
                 input.name = 'defecto';
-                input.value = tipo;
+                input.value = tipo.idTipoDefecto;
 
                 const label = document.createElement('label');
                 label.htmlFor = `defecto${index}`;
-                label.textContent = tipo;
+                label.textContent = tipo.nombre;
 
                 divOption.appendChild(input);
                 divOption.appendChild(label);
@@ -94,33 +100,93 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         } catch (error) {
             console.error('Error cargando tipos de defecto:', error);
+            mostrarError('No se pudieron cargar los tipos de defecto');
         }
     }
 
-    async function procesarDefecto() {
+    function procesarDefecto() {
         const loteId = document.getElementById('loteId').value;
         const piezaId = piezaSelect.value;
-        const defectoTipo = document.querySelector('input[name="defecto"]:checked')?.value;
+        const defectoTipoId = document.querySelector('input[name="defecto"]:checked')?.value;
         const detalles = document.getElementById('detalles').value;
         const cantidad = parseInt(quantityInput.value);
         const moneda = document.querySelector('.currency-btn.active').textContent;
 
-        if (!validarFormulario(loteId, piezaId, defectoTipo, detalles))
+        if (!validarFormulario(loteId, piezaId, defectoTipoId, detalles))
             return;
 
+        // Verificar que loteId sea un número válido
+        let loteIdNumerico;
         try {
+            loteIdNumerico = parseInt(loteId);
+            if (isNaN(loteIdNumerico)) {
+                mostrarError('El ID del lote debe ser un número válido');
+                return;
+            }
+        } catch (e) {
+            mostrarError('El ID del lote debe ser un número válido');
+            return;
+        }
+
+        // Validaciones adicionales
+        if (currentReport.loteId && currentReport.loteId !== loteIdNumerico) {
+            mostrarError('No puedes cambiar el ID del lote');
+            return;
+        }
+        if (!currentReport.loteId) {
+            currentReport.loteId = loteIdNumerico; // Guardar como número
+            currentReport.moneda = moneda;
+        } else if (currentReport.moneda !== moneda) {
+            mostrarError('No puedes cambiar la moneda');
+            return;
+        }
+
+        // Convertir IDs a números
+        const piezaIdNumerico = parseInt(piezaId);
+        const defectoTipoIdNumerico = parseInt(defectoTipoId);
+
+        // Agregar defecto al reporte actual
+        currentReport.defectos.push({
+            tipoDefecto: {idTipoDefecto: defectoTipoIdNumerico},
+            detalles,
+            cantidad_piezas: cantidad,
+            pieza: {idPieza: piezaIdNumerico},
+            costo: 0
+        });
+
+        actualizarResumen(currentReport);
+        mostrarExito('Defecto añadido al reporte');
+        limpiarCamposDefecto();
+    }
+
+    async function registrarRechazo() {
+        if (currentReport.defectos.length === 0) {
+            mostrarError('Agrega al menos un defecto');
+            return;
+        }
+
+        try {
+            // Asegurarnos que loteId sea un número (Long)
+            let loteIdNumerico;
+            try {
+                loteIdNumerico = parseInt(currentReport.loteId);
+                if (isNaN(loteIdNumerico)) {
+                    throw new Error('El ID del lote debe ser un número');
+                }
+            } catch (e) {
+                mostrarError('El ID del lote debe ser un número válido');
+                return;
+            }
+
             const reporteData = {
-                idUsuario: obtenerUsuarioId(token),
-                defectos: [{
-                        tipoDefecto: defectoTipo,
-                        detalles: detalles,
-                        cantidad_piezas: cantidad,
-                        pieza: {idPieza: piezaId},
-                        costo: 0 // Se calculará en backend
-                    }],
-                moneda: moneda,
-                loteId: loteId
+                loteId: loteIdNumerico,
+                idUsuario: currentReport.idUsuario,
+                moneda: currentReport.moneda,
+                costoTotal: 0,
+                defectos: currentReport.defectos
             };
+
+            console.log('Enviando reporte:', JSON.stringify(reporteData));
 
             const response = await fetch('/api/v1/reportes', {
                 method: 'POST',
@@ -131,66 +197,72 @@ document.addEventListener('DOMContentLoaded', async () => {
                 body: JSON.stringify(reporteData)
             });
 
-            if (!response.ok)
-                throw new Error(await response.text());
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error al registrar el reporte: ${errorText}`);
+            }
 
-            const reporteCreado = await response.json();
-            actualizarResumen(reporteCreado);
-            mostrarExito('Defecto registrado exitosamente!');
-
+            const data = await response.json();
+            actualizarResumen(data);
+            mostrarExito('Reporte registrado exitosamente');
+            limpiarFormulario();
         } catch (error) {
             console.error('Error:', error);
-            mostrarError(error.message || 'Error al procesar defecto');
+            mostrarError(error.message || 'Error al procesar el reporte');
         }
-    }
-
-    function validarFormulario(loteId, piezaId, defectoTipo, detalles) {
-        if (!loteId) {
-            mostrarError('Ingrese el ID del Lote');
-            return false;
-        }
-        if (!piezaId) {
-            mostrarError('Seleccione una pieza');
-            return false;
-        }
-        if (!defectoTipo) {
-            mostrarError('Seleccione un tipo de defecto');
-            return false;
-        }
-        if (!detalles) {
-            mostrarError('Ingrese los detalles del defecto');
-            return false;
-        }
-        return true;
-    }
-
-    function obtenerUsuarioId(token) {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.sub; // Asegurar que el JWT contenga el ID de usuario en "sub"
     }
 
     function actualizarResumen(reporte) {
-        document.getElementById('resumenLote').textContent = reporte.loteId;
-        document.getElementById('resumenCosto').textContent =
-                `${reporte.costoTotal.toFixed(2)} ${reporte.moneda}`;
-        document.getElementById('resumenPieza').textContent =
-                reporte.defectos[0].pieza.nombre;
-        document.getElementById('resumenDefecto').textContent =
-                reporte.defectos[0].tipoDefecto;
-        document.getElementById('resumenCantidad').textContent =
-                `x${reporte.defectos[0].cantidad_piezas}`;
-        document.getElementById('resumenDetalles').textContent =
-                reporte.defectos[0].detalles;
+        document.getElementById('resumenLote').textContent = reporte.loteId || '-';
+        document.getElementById('resumenCosto').textContent = `${reporte.costoTotal?.toFixed(2) || '0.00'} ${reporte.moneda || ''}`;
+        defectosResumen.innerHTML = '';
+
+        reporte.defectos.forEach(defecto => {
+            const pieza = piezasList.find(p => p.idPieza == defecto.pieza.idPieza);
+            const tipoDefecto = tiposDefectoList.find(t => t.idTipoDefecto == defecto.tipoDefecto.idTipoDefecto);
+
+            const defectoHTML = `
+                <div class="summary-row">
+                    <span class="summary-label">Pieza:</span>
+                    <span class="summary-value">${pieza?.nombre || 'Desconocido'}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Defecto:</span>
+                    <span class="summary-value">${tipoDefecto?.nombre || 'Desconocido'}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Cantidad:</span>
+                    <span class="summary-value">x${defecto.cantidad_piezas}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Detalles:</span>
+                    <span class="summary-value">${defecto.detalles}</span>
+                </div>
+                <div class="summary-divider"></div>
+            `;
+            defectosResumen.insertAdjacentHTML('beforeend', defectoHTML);
+        });
     }
 
-    function limpiarFormulario() {
-        document.getElementById('loteId').value = '';
+    function limpiarCamposDefecto() {
         piezaSelect.selectedIndex = 0;
         document.querySelectorAll('input[name="defecto"]').forEach(input => input.checked = false);
         document.getElementById('detalles').value = '';
         quantityInput.value = 1;
-        currencyBtns[0].click();
-        document.querySelectorAll('.summary-value').forEach(el => el.textContent = '-');
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('loteId').value = '';
+        limpiarCamposDefecto();
+        currencyBtns[0].click(); // Seleccionar primera moneda por defecto
+        defectosResumen.innerHTML = '';
+        // Reiniciar el reporte actual
+        currentReport = {
+            loteId: null,
+            moneda: null,
+            defectos: [],
+            idUsuario: obtenerUsuarioId(token)
+        };
     }
 
     function mostrarError(mensaje) {
@@ -209,29 +281,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => successElement.remove(), 5000);
     }
 
-    async function buscarLote() {
-        const loteId = document.getElementById('loteId').value;
-        if (!loteId)
-            return mostrarError('Ingrese un ID de Lote');
-
-        try {
-            const response = await fetch(`/api/v1/lotes/${loteId}`, {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-
-            if (!response.ok)
-                throw new Error('Lote no encontrado');
-
-            const lote = await response.json();
-            mostrarExito(`Lote encontrado: ${lote.nombre}`);
-
-        } catch (error) {
-            mostrarError(error.message);
+    function validarFormulario(loteId, piezaId, defectoTipoId, detalles) {
+        if (!loteId) {
+            mostrarError('Ingrese el ID del Lote');
+            return false;
         }
+
+        // Verificar que loteId sea un número válido
+        if (isNaN(parseInt(loteId))) {
+            mostrarError('El ID del lote debe ser un número válido');
+            return false;
+        }
+
+        if (!piezaId) {
+            mostrarError('Seleccione una pieza');
+            return false;
+        }
+        if (!defectoTipoId) {
+            mostrarError('Seleccione un tipo de defecto');
+            return false;
+        }
+        if (!detalles) {
+            mostrarError('Ingrese los detalles del defecto');
+            return false;
+        }
+        return true;
     }
 
-    async function registrarRechazo() {
-        // Implementación similar a procesarDefecto con lógica específica
-        mostrarExito('Pieza rechazada registrada (simulación)');
+    function obtenerUsuarioId(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            console.log("Payload del token:", payload);
+            return payload.userId;
+        } catch (error) {
+            console.error('Error al obtener userId:', error);
+            return null;
+        }
     }
 });

@@ -38,6 +38,9 @@ public class Reporte {
     @Column(name = "idReporte")
     private Long idReporte;
 
+    @Column(name = "loteId", nullable = false)
+    private String loteId;
+
     @Column(name = "costoTotal", nullable = false)
     private Float costoTotal;
 
