@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Test</title>
+</head>
+<body>
+  <h2>WebSocket Notificaciones</h2>
+  <input type="text" id="mensaje" placeholder="Escribe un mensaje...">
+  <button onclick="enviar()">Enviar</button>
+
+  <ul id="mensajes"></ul>
+
+  <script>
+    const socket = new WebSocket("ws://localhost:8080/ws-notificaciones");
+
+    socket.onopen = function() {
+      console.log("✅ Conectado al WebSocket");
+    };
+
+    socket.onmessage = function(event) {
+      const li = document.createElement("li");
+      li.textContent = "📨 " + event.data;
+      document.getElementById("mensajes").appendChild(li);
+    };
+
+    socket.onerror = function(error) {
+      console.error("❌ Error en WebSocket:", error);
+    };
+
+    function enviar() {
+      const msg = document.getElementById("mensaje").value;
+      socket.send(msg);
+    }
+  </script>
+</body>
+</html>
