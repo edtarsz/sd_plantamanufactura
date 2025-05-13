@@ -1,3 +1,5 @@
+import { conectarNotificaciones, enviarNotificacion } from './notificacionesSockets.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('authToken');
 
@@ -116,7 +118,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!validarFormulario(loteId, piezaId, defectoTipoId, detalles))
             return;
 
-        // Verificar que loteId sea un número válido
         let loteIdNumerico;
         try {
             loteIdNumerico = parseInt(loteId);
@@ -129,24 +130,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Validaciones adicionales
         if (currentReport.loteId && currentReport.loteId !== loteIdNumerico) {
             mostrarError('No puedes cambiar el ID del lote');
             return;
         }
         if (!currentReport.loteId) {
-            currentReport.loteId = loteIdNumerico; // Guardar como número
+            currentReport.loteId = loteIdNumerico;
             currentReport.moneda = moneda;
         } else if (currentReport.moneda !== moneda) {
             mostrarError('No puedes cambiar la moneda');
             return;
         }
 
-        // Convertir IDs a números
         const piezaIdNumerico = parseInt(piezaId);
         const defectoTipoIdNumerico = parseInt(defectoTipoId);
 
-        // Agregar defecto al reporte actual
         currentReport.defectos.push({
             tipoDefecto: {idTipoDefecto: defectoTipoIdNumerico},
             detalles,
@@ -158,7 +156,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         actualizarResumen(currentReport);
         mostrarExito('Defecto añadido al reporte');
         limpiarCamposDefecto();
+
+        // 🚀 Enviar notificación WebSocket
+        enviarNotificacion(`✅ Defecto procesado para el lote ${currentReport.loteId}`);
     }
+
 
     async function registrarRechazo() {
         if (currentReport.defectos.length === 0) {
@@ -207,6 +209,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             actualizarResumen(data);
             mostrarExito('Reporte registrado exitosamente');
             limpiarFormulario();
+
+            enviarNotificacion(`🔧 Se registró un nuevo reporte para el lote ${data.loteId}`);
         } catch (error) {
             console.error('Error:', error);
             mostrarError(error.message || 'Error al procesar el reporte');
@@ -319,4 +323,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
     }
+});
+
+// Conectar WebSocket y manejar mensajes entrantes
+conectarNotificaciones((mensaje) => {
+    console.log("Mensaje recibido en registroDefectos:", mensaje);
+    // Aquí podrías mostrar una notificación visual si lo deseas
 });

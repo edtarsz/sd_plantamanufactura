@@ -7,6 +7,8 @@ spring:
 
   cloud:
     gateway:
+      websocket:
+        enabled: true
       discovery:
         locator:
           enabled: true
@@ -15,7 +17,7 @@ spring:
           uri: lb://FRONTEND
           predicates:
             - Path=/login, /signup, /css/**, /js/**, /img/**
-            
+
         - id: auth
           uri: lb://AUTH
           predicates:
@@ -35,16 +37,16 @@ spring:
           uri: lb://REPORTES
           predicates:
             - Path=/api/v1/defectos/**
-            
+
         - id: piezas
           uri: lb://REPORTES
           predicates:
             - Path=/api/v1/piezas/**
-            
+
         - id: tipo-defectos
           uri: lb://REPORTES
           predicates:
-            - Path=/api/v1/tipo-defectos/**    
+            - Path=/api/v1/tipo-defectos/**
 
         - id: servicio-conversion-moneda
           uri: lb://SERVICIO-CONVERSION-MONEDA
@@ -55,6 +57,13 @@ spring:
           uri: lb://FRONTEND
           predicates:
             - Path=/**
+
+        - id: notificaciones-ws
+          uri: lb://NOTIFICACIONES-SERVICE
+          predicates:
+            - Path=/ws-notificaciones/**
+          filters:
+            - RewritePath=/ws-notificaciones(?<segment>/?.*), /ws-notificaciones${segment}
 
 eureka:
   instance:

@@ -29,7 +29,8 @@
     <properties>
         <java.version>20</java.version>
         <spring-cloud.version>2024.0.1</spring-cloud.version>
-        <start-class>com.example.reportes.ReportesApplication</start-class>
+        
+        <start-class>com.example.reporte.ReportesApplication</start-class>
     </properties>
     <dependencies>
         <dependency>

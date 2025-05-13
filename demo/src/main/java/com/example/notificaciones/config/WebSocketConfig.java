@@ -19,12 +19,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
 public void registerStompEndpoints(StompEndpointRegistry registry) {
-   registry.addEndpoint("/ws-notificaciones")
-        .setAllowedOriginPatterns("*")
-        .withSockJS(); 
+    registry.addEndpoint("/ws-notificaciones")
+            .setAllowedOriginPatterns("*"); 
+    
+     System.out.println("✅ Registrando endpoint WebSocket: ws://localhost:8222/ws-notificaciones");
 
-    System.out.println("✅ Registrando endpoint WebSocket: ws://localhost:8084/ws-notificaciones");
 }
+
+
+   
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
