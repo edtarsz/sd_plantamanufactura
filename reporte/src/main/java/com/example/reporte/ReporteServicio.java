@@ -4,8 +4,10 @@
  */
 package com.example.reporte;
 
+import com.example.reporte.defectos.Defecto;
 import com.example.reporte.piezas.Pieza;
 import com.example.reporte.piezas.PiezaRepository;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -35,12 +37,24 @@ public class ReporteServicio {
     }
 
     public Reporte saveOrUpdate(Reporte reporte) {
-        reporte.getDefectos().forEach(defecto -> {
+        if (reporte.getIdReporte() == null) {
+            reporte.setFecha(new Date());
+        }
+
+        float costoTotal = 0;
+
+        for (Defecto defecto : reporte.getDefectos()) {
+            // Obtener pieza actual de la base de datos
             Pieza pieza = piezaRepository.findById(defecto.getPieza().getIdPieza())
                     .orElseThrow(() -> new RuntimeException("Pieza no encontrada"));
-            defecto.setPieza(pieza);
-        });
 
+            // Recalcular costo usando el precio actual de la pieza
+            float costoDefecto = pieza.getCosto() * defecto.getCantidad_piezas();
+            defecto.setCosto(costoDefecto);
+            costoTotal += costoDefecto;
+        }
+
+        reporte.setCostoTotal(costoTotal);
         return reporteRepository.save(reporte);
     }
 
