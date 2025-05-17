@@ -12,7 +12,20 @@ spring:
       discovery:
         locator:
           enabled: true
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
       routes:
+        - id: notificaciones-ws
+          uri: lb:ws://NOTIFICACIONES-SERVICE
+          predicates:
+            - Path=/ws/**
+          filters:
+            - RewritePath=/ws/(?<segment>.*), /ws/${segment}
+            - PreserveHostHeader
         - id: frontend-public
           uri: lb://FRONTEND
           predicates:
@@ -58,12 +71,6 @@ spring:
           predicates:
             - Path=/**
 
-        - id: notificaciones-ws
-          uri: lb://NOTIFICACIONES-SERVICE
-          predicates:
-            - Path=/ws-notificaciones/**
-          filters:
-            - RewritePath=/ws-notificaciones(?<segment>/?.*), /ws-notificaciones${segment}
 
 eureka:
   instance:
