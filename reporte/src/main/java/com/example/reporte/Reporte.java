@@ -12,7 +12,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,9 +41,18 @@ public class Reporte {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idReporte")
     private Long idReporte;
-
+    
     @Column(name = "loteId", nullable = false)
     private String loteId;
+
+    @Column(name = "fecha", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date fecha;
+
+    @PrePersist
+    protected void onCreate() {
+        fecha = new Date();
+    }
 
     @Column(name = "costoTotal", nullable = false)
     private Float costoTotal;

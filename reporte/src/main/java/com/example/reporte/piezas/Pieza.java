@@ -37,4 +37,7 @@ public class Pieza {
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
+    @Column(name = "costo", nullable = false, unique = true)
+    private Float costo;
+
 }

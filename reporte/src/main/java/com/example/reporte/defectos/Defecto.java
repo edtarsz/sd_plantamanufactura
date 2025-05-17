@@ -13,7 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,11 +38,11 @@ public class Defecto {
     @Column(name = "idDefecto")
     private Long idDefecto;
 
-    @Column(name = "costo", nullable = false)
-    private Float costo;
-
     @Column(name = "detalles", nullable = false)
     private String detalles;
+
+    @Column(name = "costo", nullable = false)
+    private Float costo;
 
     @Column(name = "cantidad_piezas", nullable = false)
     private int cantidad_piezas;
