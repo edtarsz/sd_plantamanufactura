@@ -44,6 +44,9 @@ public class Reporte {
     
     @Column(name = "loteId", nullable = false)
     private String loteId;
+    
+    @Column(name = "inspector", nullable = false)
+    private String inspector;
 
     @Column(name = "fecha", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)

@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let currentReport = {
         loteId: null,
+        inspector: obtenerUsername(token),
         moneda: "USD",
         defectos: [],
         idUsuario: obtenerUsuarioId(token),
@@ -255,6 +256,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const reporteData = {
                 loteId: currentReport.loteId,
+                inspector: currentReport.inspector,
                 idUsuario: currentReport.idUsuario,
                 moneda: currentReport.moneda,
                 costoTotal: currentReport.moneda === 'USD'
@@ -389,6 +391,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             return payload.userId;
         } catch (error) {
             console.error('Error al obtener userId:', error);
+            return null;
+        }
+    }
+
+    function obtenerUsername(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.sub; // El subject del token es el username
+        } catch (error) {
+            console.error('Error al obtener username:', error);
             return null;
         }
     }
