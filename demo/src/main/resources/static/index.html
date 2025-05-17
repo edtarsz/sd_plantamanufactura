@@ -17,7 +17,7 @@
   <script>
     let stompClient = null; // solo una vez
 
-    const socket = new SockJS("/ws-notificaciones");
+    const socket = new SockJS("/ws");
     stompClient = Stomp.over(socket); // usamos la misma variable
 
     stompClient.connect({}, function (frame) {
@@ -26,7 +26,7 @@
         const mensaje = JSON.parse(msg.body).message;
         console.log("📥 Mensaje recibido: " + mensaje);
         const li = document.createElement("li");
-        li.textContent = "📨 " + mensaje;
+        li.textContent = "⚠ " + mensaje;
         document.getElementById("mensajes").appendChild(li);
       });
     }, function (error) {

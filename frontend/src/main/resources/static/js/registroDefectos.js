@@ -128,7 +128,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         actualizarResumen(currentReport);
         limpiarCamposDefecto();
         mostrarExito('Defecto agregado');
-        enviarNotificacion(`Nuevo defecto: ${pieza.nombre} - ${cantidad} unidades`);
     }
 
     async function registrarRechazo() {
@@ -166,7 +165,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             mostrarExito('Reporte registrado exitosamente');
             limpiarFormulario();
-            enviarNotificacion(`✅ Reporte finalizado: $${currentReport.costoTotal} ${currentReport.moneda}`);
+            const data = await response.json(); 
+
+            mostrarExito('Reporte registrado exitosamente');
+            limpiarFormulario();
+
+            let mensaje = `📦 REPORTE COMPLETO\n`;
+            mensaje += `Lote ID: ${data.loteId}\n`;
+            mensaje += `Usuario ID: ${data.idUsuario}\n`;
+            mensaje += `Moneda: ${data.moneda}\n`;
+            mensaje += `Costo Total: ${data.costoTotal.toFixed(2)}\n`;
+            mensaje += `Defectos:\n`;
+
+            data.defectos.forEach((d, i) => {
+                mensaje += `  ${i + 1}. Pieza ID: ${d.pieza.idPieza}, Tipo Defecto: ${d.tipoDefecto.idTipoDefecto}, Cantidad: ${d.cantidad_piezas}, Detalles: ${d.detalles}\n`;
+            });
+
+            enviarNotificacion(mensaje);
+
+
 
         } catch (error) {
             mostrarError(error.message);
