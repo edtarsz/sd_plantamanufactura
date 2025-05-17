@@ -10,23 +10,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Variables globales
     let piezasList = [];
     let tiposDefectoList = [];
+    let tasaCambioMXN = 1;
+    let monedaBloqueada = false;
 
     let currentReport = {
         loteId: null,
-        moneda: null,
+        moneda: "USD",
         defectos: [],
         idUsuario: obtenerUsuarioId(token),
-        costoTotal: 0
+        costoTotalUSD: 0,
+        costoTotalMostrar: 0
     };
 
     // Elementos UI
     const quantityInput = document.getElementById('cantidad');
     const currencyBtns = document.querySelectorAll('.currency-btn');
     const piezaSelect = document.getElementById('piezaSelect');
+    const defectosContainer = document.getElementById('defectosContainer');
+    const defectosResumen = document.getElementById('defectosResumen');
 
     // Cargar datos iniciales
     await cargarPiezas();
     await cargarTiposDefecto();
+
+    currencyBtns.forEach(btn => {
+        if (btn.textContent === 'USD') {
+            btn.classList.add('active');
+            currentReport.moneda = 'USD';
+        }
+    });
 
     // Event Listeners
     document.querySelector('.quantity-btn.decrease').addEventListener('click', () => ajustarCantidad(-1));
@@ -42,11 +54,69 @@ document.addEventListener('DOMContentLoaded', async () => {
         quantityInput.value = nuevaCantidad < 1 ? 1 : nuevaCantidad;
     }
 
-    function seleccionarMoneda(btn) {
-        currencyBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentReport.moneda = btn.textContent;
-        actualizarResumen(currentReport);
+    async function seleccionarMoneda(btn) {
+        if (monedaBloqueada)
+            return;
+
+        monedaBloqueada = true;
+        currencyBtns.forEach(b => {
+            b.disabled = true;
+            b.style.opacity = '0.5';
+            b.style.cursor = 'not-allowed';
+        });
+
+        try {
+            const nuevaMoneda = btn.textContent;
+
+            currencyBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentReport.moneda = nuevaMoneda;
+
+            if (currentReport.defectos.length > 0) {
+                await actualizarTasaCambio();
+                actualizarValoresMostrados();
+            }
+
+            actualizarResumen(currentReport);
+        } finally {
+            setTimeout(() => {
+                currencyBtns.forEach(b => {
+                    b.disabled = false;
+                    b.style.opacity = '1';
+                    b.style.cursor = 'pointer';
+                });
+                monedaBloqueada = false;
+            }, 1000);
+        }
+    }
+
+    async function actualizarTasaCambio() {
+        try {
+            const response = await fetch(`/api/v1/conversion/rate?from=USD&to=MXN`);
+            const data = await response.json();
+
+            if (data && data.exchangeRate) {
+                tasaCambioMXN = parseFloat(data.exchangeRate);
+            }
+        } catch (error) {
+            console.error('Error actualizando tasa:', error);
+            mostrarError('No se pudo actualizar la tasa de cambio');
+            throw error;
+        }
+    }
+
+    function actualizarValoresMostrados() {
+        // Actualizar costo total
+        currentReport.costoTotalMostrar = currentReport.moneda === 'USD'
+                ? currentReport.costoTotalUSD
+                : currentReport.costoTotalUSD * tasaCambioMXN;
+
+        // Actualizar defectos
+        currentReport.defectos.forEach(defecto => {
+            defecto.costoMostrar = currentReport.moneda === 'USD'
+                    ? defecto.costoUSD
+                    : defecto.costoUSD * tasaCambioMXN;
+        });
     }
 
     async function cargarPiezas() {
@@ -118,17 +188,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const costoDefecto = pieza.costo * cantidad;
+        const costoUSD = pieza.costo * cantidad;
+
         const nuevoDefecto = {
             tipoDefecto: {idTipoDefecto: defectoTipoId},
             detalles,
             cantidad_piezas: cantidad,
             pieza: {idPieza: piezaId},
-            costo: costoDefecto
+            costoUSD: costoUSD,
+            costoMostrar: currentReport.moneda === 'USD'
+                    ? costoUSD
+                    : costoUSD * tasaCambioMXN
         };
 
         currentReport.defectos.push(nuevoDefecto);
-        currentReport.costoTotal += costoDefecto;
+        currentReport.costoTotalUSD += costoUSD;
+        currentReport.costoTotalMostrar += nuevoDefecto.costoMostrar;
 
         actualizarResumen(currentReport);
         limpiarCamposDefecto();
@@ -136,9 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function registrarRechazo() {
-        currentReport.costoTotal = Number(currentReport.costoTotal) || 0;
-
-        if (currentReport.costoTotal <= 0) {
+        if (currentReport.costoTotalUSD <= 0) {
             mostrarError('El costo total debe ser mayor a cero');
             return;
         }
@@ -158,10 +231,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loteId: currentReport.loteId,
                 idUsuario: currentReport.idUsuario,
                 moneda: currentReport.moneda,
-                costoTotal: currentReport.costoTotal,
-                defectos: currentReport.defectos
+                costoTotal: currentReport.moneda === 'USD'
+                        ? currentReport.costoTotalUSD
+                        : currentReport.costoTotalUSD * tasaCambioMXN,
+                defectos: currentReport.defectos.map(d => ({
+                        ...d,
+                        costo: d.costoUSD
+                    }))
             };
-
 
             const response = await fetch('/api/v1/reportes', {
                 method: 'POST',
@@ -175,10 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok)
                 throw new Error(await response.text());
 
-            mostrarExito('Reporte registrado exitosamente');
-            limpiarFormulario();
             const data = await response.json();
-
             mostrarExito('Reporte registrado exitosamente');
             limpiarFormulario();
 
@@ -195,34 +269,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             enviarNotificacion(mensaje);
 
-
-
         } catch (error) {
             mostrarError(error.message);
         }
     }
 
     function actualizarResumen(reporte) {
-        // Formatear costo total de forma segura
-        const costoTotal = reporte.costoTotal || 0;
-        const moneda = reporte.moneda || '';
-
+        document.getElementById('resumenLote').textContent = reporte.loteId || '-';
         document.getElementById('resumenCosto').textContent =
-                `${costoTotal.toFixed(2)} ${moneda}`;
+                `${reporte.costoTotalMostrar.toFixed(2)} ${reporte.moneda || ''}`;
 
-        // Mapear defectos con validación
         defectosResumen.innerHTML = reporte.defectos.map(defecto => {
             const pieza = piezasList.find(p => p.idPieza === defecto.pieza.idPieza);
             const tipo = tiposDefectoList.find(t => t.idTipoDefecto === defecto.tipoDefecto.idTipoDefecto);
 
             return `
-            <div class="summary-row">
-                <span>${pieza?.nombre || 'Desconocido'}</span>
-                <span>${tipo?.nombre || 'Desconocido'}</span>
-                <span>x${defecto.cantidad_piezas}</span>
-                <span>${(defecto.costo || 0).toFixed(2)} ${reporte.moneda || ''}</span>
-            </div>
-        `;
+                <div class="summary-row">
+                    <span>${pieza?.nombre || 'Desconocido'}</span>
+                    <span>${tipo?.nombre || 'Desconocido'}</span>
+                    <span>x${defecto.cantidad_piezas}</span>
+                    <span>${defecto.costoMostrar.toFixed(2)} ${reporte.moneda}</span>
+                </div>
+            `;
         }).join('');
     }
 
@@ -239,16 +307,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         currencyBtns[0].click();
         defectosResumen.innerHTML = '';
 
-        // Reiniciar el reporte actual
         currentReport = {
             loteId: null,
-            moneda: null,
+            moneda: 'USD',
             defectos: [],
             idUsuario: obtenerUsuarioId(token),
-            costoTotal: 0
+            costoTotalUSD: 0,
+            costoTotalMostrar: 0
         };
 
-        actualizarResumen(currentReport)
+        actualizarResumen(currentReport);
     }
 
     function mostrarError(mensaje) {
