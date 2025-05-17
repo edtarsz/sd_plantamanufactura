@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+
     const menuToggle = document.querySelector('.menu-toggle');
     const dropdownMenu = document.querySelector('.dropdown-menu');
 
@@ -29,11 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const nuevoDefectoTextarea = document.getElementById('nuevo-defecto-texto');
     const addBtn = document.getElementById('add-btn');
     const clearBtnNuevo = document.getElementById('clear-btn-nuevo');
+    let editandoId = null;
 
+    // Función para crear elementos de defecto
     function crearDefectoItem(defecto) {
         const item = document.createElement('div');
         item.classList.add('defecto-item');
-        item.dataset.idDefecto = defecto.id;
+        item.dataset.idDefecto = defecto.idTipoDefecto;
 
         const actionsDiv = document.createElement('div');
         actionsDiv.classList.add('defecto-actions');
@@ -41,12 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const editBtn = document.createElement('button');
         editBtn.classList.add('action-btn', 'edit-btn');
         editBtn.innerHTML = '<i class="fas fa-pencil-alt"></i>';
-        editBtn.setAttribute('aria-label', 'Editar defecto'); // Para accesibilidad
 
         const deleteBtn = document.createElement('button');
         deleteBtn.classList.add('action-btn', 'delete-btn');
         deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-        deleteBtn.setAttribute('aria-label', 'Eliminar defecto'); // Para accesibilidad
 
         actionsDiv.appendChild(editBtn);
         actionsDiv.appendChild(deleteBtn);
@@ -56,11 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const numberSpan = document.createElement('span');
         numberSpan.classList.add('defecto-number');
-        numberSpan.textContent = defecto.id.toString().padStart(2, '0');
+        numberSpan.textContent = defecto.idTipoDefecto.toString().padStart(2, '0');
 
         const textSpan = document.createElement('span');
         textSpan.classList.add('defecto-text');
-        textSpan.textContent = defecto.descripcion;
+        textSpan.textContent = defecto.nombre;
 
         contentDiv.appendChild(numberSpan);
         contentDiv.appendChild(textSpan);
@@ -71,131 +78,140 @@ document.addEventListener('DOMContentLoaded', () => {
         return item;
     }
 
+    // Función para cargar defectos desde el backend
     async function cargarDefectos() {
-        console.log('Cargando lista de defectos...');
-        defectosListContainer.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #555;">Cargando defectos...</div>'; // Placeholder
-
-        // Fetch get
-        // Aquí tenemos que hacer la llamada para recuperar los defectos
         try {
-            //Algo asi:
-            // const response = await fetch('/api/v1/catalogo/defectos');
-            // if (!response.ok) throw new Error('Error al cargar');
-            // const defectos = await response.json();
+            defectosListContainer.innerHTML = '<div class="loading-placeholder">Cargando defectos...</div>';
 
-            // Datos de ejemplo de mientras
-            await new Promise(resolve => setTimeout(resolve, 500));
-            const defectos = [
-                {id: 1, descripcion: 'Rayadura Superficial'},
-                {id: 2, descripcion: 'Mancha de Grasa'},
-                {id: 3, descripcion: 'Pieza Rota'},
-                {id: 4, descripcion: 'Etiqueta Incorrecta'}
-            ];
+            const response = await fetch('/api/v1/tipo-defectos', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok)
+                throw new Error('Error al cargar defectos');
+
+            const defectos = await response.json();
 
             defectosListContainer.innerHTML = '';
             if (defectos.length === 0) {
-                defectosListContainer.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #555;">No hay defectos en el catálogo.</div>';
+                defectosListContainer.innerHTML = '<div class="loading-placeholder">No hay defectos registrados</div>';
             } else {
                 defectos.forEach(defecto => {
-                    const itemElement = crearDefectoItem(defecto);
-                    defectosListContainer.appendChild(itemElement);
+                    const item = crearDefectoItem(defecto);
+                    defectosListContainer.appendChild(item);
                 });
             }
-
         } catch (error) {
-            console.error('Error cargando defectos:', error);
-            defectosListContainer.innerHTML = `<div class="loading-placeholder" style="text-align: center; padding: 20px; color: red;">Error al cargar defectos: ${error.message}</div>`;
+            console.error('Error:', error);
+            defectosListContainer.innerHTML = `<div class="error-placeholder">${error.message}</div>`;
         }
     }
 
-
+    // Evento para añadir/actualizar defectos
     addBtn.addEventListener('click', async () => {
-        const descripcion = nuevoDefectoTextarea.value.trim();
-        if (!descripcion) {
-            alert('Por favor, introduzca la descripción del defecto.');
-            nuevoDefectoTextarea.focus();
+        const nombre = nuevoDefectoTextarea.value.trim();
+
+        if (!nombre) {
+            alert('Ingrese el nombre del defecto');
             return;
         }
 
-        console.log('Añadiendo nuevo defecto:', descripcion);
-
-        // Fetch post
-        // Aquí lo mismo que el get se ocupa hacer la llamada real al post
         try {
-            //Como lo siguiente:
-            // const response = await fetch('/api/v1/catalogo/defectos', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ descripcion: descripcion })
-            // });
-            // if (!response.ok) throw new Error('Error al añadir');
-            // const nuevoDefecto = await response.json(); // El backend debería devolver el nuevo defecto con su ID
+            const url = editandoId
+                    ? `/api/v1/tipo-defectos/${editandoId}`
+                    : '/api/v1/tipo-defectos';
 
-            await new Promise(resolve => setTimeout(resolve, 300));
-            console.log('Defecto añadido (simulado). ID asignado:', Math.floor(Math.random() * 1000));
+            const method = editandoId ? 'PUT' : 'POST';
 
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({nombre})
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al guardar');
+            }
+
+            // Resetear formulario
             nuevoDefectoTextarea.value = '';
-            cargarDefectos();
+            editandoId = null;
+            addBtn.innerHTML = 'Añadir Tipo de Defecto <i class="fas fa-plus"></i>';
+
+            await cargarDefectos();
+            alert(editandoId ? '¡Defecto actualizado!' : '¡Defecto creado!');
 
         } catch (error) {
-            console.error('Error añadiendo defecto:', error);
-            alert(`Error al añadir defecto: ${error.message}`);
+            alert(`Error: ${error.message}`);
+            console.error('Error:', error);
         }
     });
 
-    clearBtnNuevo.addEventListener('click', () => {
-        nuevoDefectoTextarea.value = '';
-    });
+    // Eventos para editar/eliminar
+    defectosListContainer.addEventListener('click', async (e) => {
+        // Manejar edición
+        const editButton = e.target.closest('.edit-btn');
+        if (editButton) {
+            const defectoItem = editButton.closest('.defecto-item');
+            const defectoId = defectoItem.dataset.idDefecto;
+            const defectoTexto = defectoItem.querySelector('.defecto-text').textContent;
 
-    defectosListContainer.addEventListener('click', async (event) => {
-        const targetButton = event.target.closest('.action-btn');
-
-        if (!targetButton)
+            nuevoDefectoTextarea.value = defectoTexto;
+            editandoId = defectoId;
+            addBtn.innerHTML = 'Actualizar Defecto <i class="fas fa-save"></i>';
             return;
+        }
 
-        const defectoItem = targetButton.closest('.defecto-item');
-        const defectoId = defectoItem.dataset.idDefecto;
+        // Manejar eliminación
+        const deleteButton = e.target.closest('.delete-btn');
+        if (deleteButton) {
+            const defectoItem = deleteButton.closest('.defecto-item');
+            const defectoId = defectoItem.dataset.idDefecto;
 
-        if (!defectoId)
-            return;
-
-        // Acción: Eliminar
-        if (targetButton.classList.contains('delete-btn')) {
-            if (confirm(`¿Está seguro de que desea eliminar el defecto con ID ${defectoId}? Esta acción no se puede deshacer.`)) {
-                console.log('Eliminando defecto con ID:', defectoId);
-
-                // Fetch delete
+            if (confirm('¿Está seguro de eliminar este tipo de defecto?')) {
                 try {
-                    //Tipo asi
-                    // const response = await fetch(`/api/v1/catalogo/defectos/${defectoId}`, { method: 'DELETE' });
-                    // if (!response.ok) throw new Error('Error al eliminar');
+                    const response = await fetch(`/api/v1/tipo-defectos/${defectoId}`, {
+                        method: 'DELETE',
+                        headers: {'Authorization': `Bearer ${token}`}
+                    });
 
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    console.log('Defecto eliminado (simulado).');
+                    if (response.status === 204) {
+                        await cargarDefectos();
+                        alert('Tipo de defecto eliminado exitosamente');
+                        return;
+                    }
 
-                    cargarDefectos();
+                    if (response.status === 409) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message);
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
 
                 } catch (error) {
-                    console.error('Error eliminando defecto:', error);
-                    alert(`Error al eliminar defecto: ${error.message}`);
+                    alert(error.message);
+                    console.error('Error eliminando:', error);
                 }
             }
         }
-        // Editar
-        else if (targetButton.classList.contains('edit-btn')) {
-            const defectoTexto = defectoItem.querySelector('.defecto-text').textContent;
-            console.log('Editar defecto ID:', defectoId, 'Texto actual:', defectoTexto);
-
-            // Lógica de Edición
-            nuevoDefectoTextarea.value = defectoTexto;
-            nuevoDefectoTextarea.focus();
-
-            // Cambiar el botón "Añadir" a "Actualizar"
-            // Necesitariamos guardar el ID que estemos editando
-            // y cambiar el texto o el event listener del botón.
-        }
     });
 
-    cargarDefectos();
+    // Limpiar formulario
+    clearBtnNuevo.addEventListener('click', () => {
+        nuevoDefectoTextarea.value = '';
+        editandoId = null;
+        addBtn.innerHTML = 'Añadir Tipo de Defecto <i class="fas fa-plus"></i>';
+    });
 
+
+    // Cargar defectos al iniciar
+    cargarDefectos();
 });

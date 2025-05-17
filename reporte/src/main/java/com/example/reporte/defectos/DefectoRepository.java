@@ -13,4 +13,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface DefectoRepository extends JpaRepository<Defecto, Long> {
+    boolean existsByTipoDefectoIdTipoDefecto(Long idTipoDefecto);
 }

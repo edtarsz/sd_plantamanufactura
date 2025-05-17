@@ -4,11 +4,12 @@
  */
 package com.example.reporte.tipodedefecto;
 
-import com.example.reporte.defectos.Defecto;
+import com.example.reporte.defectos.DefectoRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,6 +19,12 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class TipoDefectoServicio {
+
+    @Autowired
+    private TipoDefectoRepository tipoDefectoRepositorio;
+
+    @Autowired
+    private DefectoRepository defectoRepositorio;
 
     @Autowired
     TipoDefectoRepository tipoDefectoRepository;
@@ -30,11 +37,25 @@ public class TipoDefectoServicio {
         return tipoDefectoRepository.findById(id);
     }
 
-    public void saveOrUpdate(TipoDefecto tipoDefecto) {
-        tipoDefectoRepository.save(tipoDefecto);
+    public TipoDefecto saveOrUpdate(TipoDefecto tipoDefecto) {
+        // Validar nombre único al editar
+        if (tipoDefecto.getIdTipoDefecto() != null) {
+            Optional<TipoDefecto> existente = tipoDefectoRepositorio.findByNombreAndIdTipoDefectoNot(
+                    tipoDefecto.getNombre(),
+                    tipoDefecto.getIdTipoDefecto()
+            );
+
+            if (existente.isPresent()) {
+                throw new DataIntegrityViolationException("Ya existe un tipo de defecto con ese nombre");
+            }
+        }
+        return tipoDefectoRepositorio.save(tipoDefecto);
     }
 
-    public void delete(Long id) {
-        tipoDefectoRepository.deleteById(id);
+    public void delete(Long idTipoDefecto) {
+        if (defectoRepositorio.existsByTipoDefectoIdTipoDefecto(idTipoDefecto)) {
+            throw new DataIntegrityViolationException("No se puede eliminar porque existen defectos asociados");
+        }
+        tipoDefectoRepositorio.deleteById(idTipoDefecto);
     }
 }
