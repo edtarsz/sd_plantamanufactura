@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+
+    // Toggle del menú
+    menuToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('active');
+    });
+
+    // Cerrar menú al hacer click fuera
+    document.addEventListener('click', function (e) {
+        if (!menuToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.remove('active');
+        }
+    });
+
+    // Cerrar menú al hacer scroll
+    window.addEventListener('scroll', function () {
+        dropdownMenu.classList.remove('active');
+    });
+
+    // Prevenir cierre al hacer click dentro del menú
+    dropdownMenu.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
 
     const defectosListContainer = document.querySelector('.defectos-list');
     const nuevoDefectoTextarea = document.getElementById('nuevo-defecto-texto');

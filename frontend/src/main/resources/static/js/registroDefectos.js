@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     b.style.cursor = 'pointer';
                 });
                 monedaBloqueada = false;
-            }, 1000);
+            }, 500);
         }
     }
 

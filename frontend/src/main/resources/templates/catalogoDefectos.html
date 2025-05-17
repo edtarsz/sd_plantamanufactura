@@ -14,11 +14,31 @@
     <body>
         <header>
             <div class="logo">LOGO</div>
-            <button class="menu-toggle">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </button>
+            <div class="menu-container">
+                <button class="menu-toggle">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <div class="dropdown-menu">
+                    <a th:href="@{/registroDefectos}" class="menu-item">
+                        <i class="fas fa-bug"></i>
+                        Registro de Defectos
+                    </a>
+                    <a th:href="@{/generarReportes}" class="menu-item">
+                        <i class="fas fa-file-alt"></i>
+                        Generar Reporte
+                    </a>
+                    <a th:href="@{/catalogoDefectos}" class="menu-item">
+                        <i class="fas fa-list-ol"></i>
+                        Catálogo de Defectos
+                    </a>
+                    <a href="#" class="menu-item" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
         </header>
 
         <main>
@@ -49,7 +69,12 @@
                 </div>
             </section>
         </main>
-
-        <script th:src="@{/js/catalogo_script.js}" defer></script>
+        <script>
+            function logout() {
+                localStorage.removeItem("authToken");
+                document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                window.location.href = "/login";
+            }
+        </script>
     </body>
 </html>

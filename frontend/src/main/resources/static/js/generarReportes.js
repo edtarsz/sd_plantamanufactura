@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+
+    // Toggle del menú
+    menuToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('active');
+    });
+
+    // Cerrar menú al hacer click fuera
+    document.addEventListener('click', function (e) {
+        if (!menuToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.remove('active');
+        }
+    });
+
+    // Cerrar menú al hacer scroll
+    window.addEventListener('scroll', function () {
+        dropdownMenu.classList.remove('active');
+    });
+
+    // Prevenir cierre al hacer click dentro del menú
+    dropdownMenu.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
 
     const currencyUsdBtn = document.getElementById('currency-usd');
     const currencyMxnBtn = document.getElementById('currency-mxn');
@@ -13,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentCurrency = 'USD';
     let currentFilters = {};
-
 
     function getFilters() {
         const filters = {
@@ -70,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryContent.innerHTML = '';
 
         if (!summary) {
-             summaryContent.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #aaa;">No hay datos para el resumen.</div>';
+            summaryContent.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #aaa;">No hay datos para el resumen.</div>';
             return;
         }
 
@@ -87,11 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
             row.appendChild(valueSpan);
             return row;
         }
-         function createDivider() {
-             const div = document.createElement('div');
-             div.classList.add('summary-divider');
-             return div;
-         }
+        function createDivider() {
+            const div = document.createElement('div');
+            div.classList.add('summary-divider');
+            return div;
+        }
 
         summaryContent.appendChild(createSummaryRow('ID del Lote', summary.loteId));
         summaryContent.appendChild(createSummaryRow('Total Defectos', summary.totalDefectos));
@@ -99,13 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryContent.appendChild(createDivider());
 
         if (summary.detallesPorDefecto && summary.detallesPorDefecto.length > 0) {
-             summary.detallesPorDefecto.forEach(detalle => {
-                 summaryContent.appendChild(createSummaryRow('Defecto', detalle.tipo));
-                 summaryContent.appendChild(createSummaryRow('Cantidad', detalle.cantidad));
-                 summaryContent.appendChild(createSummaryRow('Costo', `${detalle.costo || 0} ${currentCurrency}`));
-                 summaryContent.appendChild(createDivider());
-             });
-        }
+            summary.detallesPorDefecto.forEach(detalle => {
+                summaryContent.appendChild(createSummaryRow('Defecto', detalle.tipo));
+                summaryContent.appendChild(createSummaryRow('Cantidad', detalle.cantidad));
+                summaryContent.appendChild(createSummaryRow('Costo', `${detalle.costo || 0} ${currentCurrency}`));
+                summaryContent.appendChild(createDivider());
+            });
+    }
     }
 
     async function cargarReportes() {
@@ -123,22 +147,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Datos de ejemplo para simular por ahora, aqui debemos recuperar de la BD
             await new Promise(resolve => setTimeout(resolve, 700));
-             const result = {
-                 tableData: [
-                     { id: 'D001', pieza: 'Cepillo X', inspector: 'Ana C.', lote: 'LOTE01', tipoDefecto: 'Rayado' },
-                     { id: 'D002', pieza: 'Esponja Y', inspector: 'Juan P.', lote: 'LOTE02', tipoDefecto: 'Manchado' },
-                     { id: 'D003', pieza: 'Cepillo X', inspector: 'Ana C.', lote: 'LOTE01', tipoDefecto: 'Roto' }
-                 ],
-                 summaryData: {
+            const result = {
+                tableData: [
+                    {id: 'D001', pieza: 'Cepillo X', inspector: 'Ana C.', lote: 'LOTE01', tipoDefecto: 'Rayado'},
+                    {id: 'D002', pieza: 'Esponja Y', inspector: 'Juan P.', lote: 'LOTE02', tipoDefecto: 'Manchado'},
+                    {id: 'D003', pieza: 'Cepillo X', inspector: 'Ana C.', lote: 'LOTE01', tipoDefecto: 'Roto'}
+                ],
+                summaryData: {
                     loteId: currentFilters.lote || 'Varios',
                     totalDefectos: 3,
                     costoTotal: 150.75,
                     detallesPorDefecto: [
-                        { tipo: 'Rayado', cantidad: 1, costo: 50.25 },
-                        { tipo: 'Manchado', cantidad: 1, costo: 40.50 },
-                        { tipo: 'Roto', cantidad: 1, costo: 60.00 }
+                        {tipo: 'Rayado', cantidad: 1, costo: 50.25},
+                        {tipo: 'Manchado', cantidad: 1, costo: 40.50},
+                        {tipo: 'Roto', cantidad: 1, costo: 60.00}
                     ]
-                 }
+                }
             };
 
             displayTableData(result.tableData);
@@ -163,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     currencyMxnBtn.addEventListener('click', () => {
-         if (currentCurrency !== 'MXN') {
+        if (currentCurrency !== 'MXN') {
             currencyMxnBtn.classList.add('active');
             currencyUsdBtn.classList.remove('active');
             currentCurrency = 'MXN';
@@ -201,8 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         console.log(`Exportando rango de fechas (${fechaInicial} - ${fechaFinal}) en formato ${format}`);
-         alert(`Simulación de exportación por fechas en ${format}. Revisa la consola.`);
-         // window.location.href = `/api/v1/reportes/exportar-rango?formato=${format}&inicio=${fechaInicial}&fin=${fechaFinal}`; // Ejemplo
+        alert(`Simulación de exportación por fechas en ${format}. Revisa la consola.`);
+        // window.location.href = `/api/v1/reportes/exportar-rango?formato=${format}&inicio=${fechaInicial}&fin=${fechaFinal}`; // Ejemplo
     });
 
     cargarReportes();
