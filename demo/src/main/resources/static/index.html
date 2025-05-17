@@ -8,40 +8,28 @@
 </head>
 <body>
   <h1>Real-Time Notifications</h1>
-  <div>
-    <input type="text" id="mensaje" placeholder="Enter your message">
-    <button onclick="enviar()">Send</button>
-  </div>
+  
   <ul id="mensajes"></ul>
 
   <script>
-    let stompClient = null; // solo una vez
+    let stompClient = null;
 
     const socket = new SockJS("/ws");
-    stompClient = Stomp.over(socket); // usamos la misma variable
+    stompClient = Stomp.over(socket);
 
     stompClient.connect({}, function (frame) {
       console.log("✅ Conectado: " + frame);
       stompClient.subscribe('/topic/notifications', function (msg) {
-        const mensaje = JSON.parse(msg.body).message;
-        console.log("📥 Mensaje recibido: " + mensaje);
+        const mensaje = msg.body;
+        console.log("📥 Mensaje recibido:", mensaje);
+
         const li = document.createElement("li");
-        li.textContent = "⚠ " + mensaje;
+        li.textContent = mensaje;
         document.getElementById("mensajes").appendChild(li);
       });
     }, function (error) {
       console.error("❌ Error de conexión:", error);
     });
-
-    function enviar() {
-      const msg = document.getElementById("mensaje").value;
-      if (stompClient && stompClient.connected) {
-        stompClient.send("/app/notify", {}, JSON.stringify({ message: msg }));
-      } else {
-        alert("❗ WebSocket no está conectado.");
-      }
-    }
   </script>
 </body>
 </html>
-
