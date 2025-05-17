@@ -98,11 +98,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         currentReport.loteId = loteId;
 
-        const piezaId = parseInt(piezaSelect.value);
-        const defectoTipoId = parseInt(document.querySelector('input[name="defecto"]:checked')?.value);
+        const piezaId = parseInt(piezaSelect.value) || 0;
+        const defectoTipoId = parseInt(document.querySelector('input[name="defecto"]:checked')?.value) || 0;
         const detalles = document.getElementById('detalles').value;
-        const cantidad = parseInt(quantityInput.value);
+        const cantidad = parseInt(quantityInput.value) || 0;
         const moneda = document.querySelector('.currency-btn.active').textContent;
+
+        if (isNaN(piezaId)) {
+            mostrarError('Seleccione una pieza válida');
+            return;
+        }
 
         if (!validarFormulario(loteId, piezaId, defectoTipoId, detalles))
             return;
@@ -131,6 +136,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function registrarRechazo() {
+        currentReport.costoTotal = Number(currentReport.costoTotal) || 0;
+
+        if (currentReport.costoTotal <= 0) {
+            mostrarError('El costo total debe ser mayor a cero');
+            return;
+        }
+
         if (!currentReport.loteId) {
             mostrarError('Primero debe procesar al menos un defecto con un ID de lote válido');
             return;
@@ -165,7 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             mostrarExito('Reporte registrado exitosamente');
             limpiarFormulario();
-            const data = await response.json(); 
+            const data = await response.json();
 
             mostrarExito('Reporte registrado exitosamente');
             limpiarFormulario();
@@ -191,21 +203,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function actualizarResumen(reporte) {
-        document.getElementById('resumenLote').textContent = reporte.loteId || '-';
-        document.getElementById('resumenCosto').textContent =
-                `${reporte.costoTotal.toFixed(2)} ${reporte.moneda || ''}`;
+        // Formatear costo total de forma segura
+        const costoTotal = reporte.costoTotal || 0;
+        const moneda = reporte.moneda || '';
 
+        document.getElementById('resumenCosto').textContent =
+                `${costoTotal.toFixed(2)} ${moneda}`;
+
+        // Mapear defectos con validación
         defectosResumen.innerHTML = reporte.defectos.map(defecto => {
             const pieza = piezasList.find(p => p.idPieza === defecto.pieza.idPieza);
             const tipo = tiposDefectoList.find(t => t.idTipoDefecto === defecto.tipoDefecto.idTipoDefecto);
+
             return `
-                <div class="summary-row">
-                    <span>${pieza?.nombre}</span>
-                    <span>${tipo?.nombre}</span>
-                    <span>x${defecto.cantidad_piezas}</span>
-                    <span>${defecto.costo.toFixed(2)} ${reporte.moneda}</span>
-                </div>
-            `;
+            <div class="summary-row">
+                <span>${pieza?.nombre || 'Desconocido'}</span>
+                <span>${tipo?.nombre || 'Desconocido'}</span>
+                <span>x${defecto.cantidad_piezas}</span>
+                <span>${(defecto.costo || 0).toFixed(2)} ${reporte.moneda || ''}</span>
+            </div>
+        `;
         }).join('');
     }
 
@@ -219,15 +236,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     function limpiarFormulario() {
         document.getElementById('loteId').value = '';
         limpiarCamposDefecto();
-        currencyBtns[0].click(); // Seleccionar primera moneda por defecto
+        currencyBtns[0].click();
         defectosResumen.innerHTML = '';
+
         // Reiniciar el reporte actual
         currentReport = {
             loteId: null,
             moneda: null,
             defectos: [],
-            idUsuario: obtenerUsuarioId(token)
+            idUsuario: obtenerUsuarioId(token),
+            costoTotal: 0
         };
+
+        actualizarResumen(currentReport)
     }
 
     function mostrarError(mensaje) {
