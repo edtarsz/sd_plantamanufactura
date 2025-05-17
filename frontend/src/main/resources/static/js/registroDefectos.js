@@ -337,6 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         currentReport = {
             loteId: null,
+            inspector: obtenerUsername(token),
             moneda: 'USD',
             defectos: [],
             idUsuario: obtenerUsuarioId(token),
