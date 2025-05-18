@@ -111,6 +111,7 @@ public class ReporteControlador {
                 DefectoDTO defectoDto = new DefectoDTO();
                 defectoDto.setTipoDefecto(defecto.getTipoDefecto().getNombre());
                 defectoDto.setCantidad_piezas(defecto.getCantidad_piezas());
+                defectoDto.setCosto(defecto.getCosto());
                 defectoDto.setDetalles(defecto.getDetalles());
                 return defectoDto;
             }).collect(Collectors.toList()));

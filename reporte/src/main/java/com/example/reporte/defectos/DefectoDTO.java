@@ -20,6 +20,8 @@ import lombok.Setter;
 public class DefectoDTO {
 
     private String tipoDefecto;
-    private int cantidad_piezas;
+    private Integer cantidad_piezas;
+    private Double costo;
     private String detalles;
+
 }

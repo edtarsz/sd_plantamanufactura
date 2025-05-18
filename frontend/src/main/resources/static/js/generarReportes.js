@@ -160,41 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Actualizar resumen
     function updateSummary(data) {
         if (Array.isArray(data)) {
-            // Modo lista de reportes
             const total = data.reduce((sum, r) => sum + r.costoTotal, 0);
-            const average = data.length > 0 ? total / data.length : 0;
-
-            summaryContent.innerHTML = `
-            <div class="summary-row">
-                <span class="summary-label">Reportes Totales:</span>
-                <span>${data.length}</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Costo Total:</span>
-                <span>${formatCurrency(total * conversionRate)}</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Costo Promedio:</span>
-                <span>${formatCurrency(average * conversionRate)}</span>
-            </div>
-        `;
+            summaryContent.innerHTML = generateGeneralSummary(data, total);
         } else {
-            // Modo detalle de un reporte
-            const report = data;
-            summaryContent.innerHTML = `
-            <div class="summary-header-detalle">
-                <h3>Reporte #${report.idReporte}</h3>
-                <span class="fecha-reporte">${new Date(report.fecha).toLocaleDateString('es-MX')}</span>
-            </div>
-            <div class="detalle-item">
-                <span class="detalle-label">Lote:</span>
-                <span class="detalle-value">${report.loteId || 'N/A'}</span>
-            </div>
-            <div class="detalle-item">
-                <span class="detalle-label">Total:</span>
-                <span class="detalle-value highlight">${formatCurrency(report.costoTotal * conversionRate)}</span>
-            </div>
-        `;
+            summaryContent.innerHTML = generateReportSummary(data);
         }
     }
 
@@ -364,23 +333,34 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="defectos-container">
-            <h4>Defectos Detectados</h4>
-            ${report.defectos && report.defectos.length > 0
-                ? report.defectos.map(defecto => `
-                    <div class="defecto-card">
-                        <div class="defecto-header">
-                            <span class="tipo-defecto ${defecto.tipoDefecto.toLowerCase()}">${defecto.tipoDefecto}</span>
-                            <span class="cantidad-defecto">${defecto.cantidad} piezas</span>
-                        </div>
-                        ${defecto.descripcion ? `
-                        <div class="defecto-descripcion">
-                            ${defecto.descripcion}
-                        </div>
-                        ` : ''}
+            <h4>Defectos Detectados (${report.defectos.length})</h4>
+            <p>*******************************************</p>
+            ${report.defectos.map(defecto => `
+                <div class="defecto-card">
+                    <div class="defecto-header">
+                        <span class="propiedad-label">Tipo de defecto:</span>
+                        <span class="tipo-defecto ${defecto.tipoDefecto.nombre.toLowerCase()}">
+                            ${defecto.tipoDefecto.nombre}
+                        </span>
                     </div>
-                `).join('')
-                : '<div class="sin-defectos">No se registraron defectos</div>'
-                }
+                    
+                    <div class="defecto-detalles">
+                        <div class="defecto-propiedad">
+                            <span class="propiedad-label">Cantidad:</span>
+                            <span class="propiedad-valor">${defecto.cantidad_piezas} piezas</span>
+                        </div>
+                        <div class="defecto-propiedad">
+                            <span class="propiedad-label">Descripción:</span>
+                            <span class="propiedad-valor">${defecto.detalles || 'Sin descripción'}</span>
+                        </div>
+                        <div class="defecto-propiedad">
+                            <span class="propiedad-label">Inspector:</span>
+                            <span class="propiedad-valor">${report.inspector}</span>
+                        </div>
+                        <p>*******************************************</p>
+                    </div>
+                </div>
+            `).join('')}
         </div>
     `;
     }

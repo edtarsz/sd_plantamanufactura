@@ -605,6 +605,74 @@ header {
     border-radius: 4px;
 }
 
+.defectos-container {
+    margin-top: 1.5rem;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.defecto-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.defecto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.tipo-defecto {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.tipo-defecto.critico {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.tipo-defecto.moderado {
+    background: #fef3c7;
+    color: #d97706;
+}
+.tipo-defecto.leve {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.defecto-costo {
+    font-weight: 600;
+    color: #1e3a8a;
+}
+
+.defecto-detalles {
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.9em;
+}
+
+.defecto-propiedad {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.propiedad-label {
+    color: #6b7280;
+    min-width: 80px;
+}
+
+.propiedad-valor {
+    color: #1f2937;
+    font-weight: 500;
+}
+
 /* Estilos responsivos adicionales */
 @media (max-width: 767px) {
     .table-container {
