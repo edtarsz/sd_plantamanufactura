@@ -6,6 +6,9 @@ package com.example.reporte;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -13,7 +16,14 @@ import org.springframework.stereotype.Repository;
  * @author Ramos
  */
 @Repository
-public interface ReporteRepository extends JpaRepository<Reporte, Long> {
+public interface ReporteRepository extends JpaRepository<Reporte, Long>, JpaSpecificationExecutor<Reporte> {
 
-    public List<Reporte> findAllReportesByIdUsuario(Long idUsuario);
+    @Query("SELECT r FROM Reporte r WHERE r.idUsuario = :idUsuario")
+    List<Reporte> findAllByUsuarioId(@Param("idUsuario") Long idUsuario);
+
+    @Query("SELECT r FROM Reporte r "
+            + "LEFT JOIN FETCH r.defectos d "
+            + "LEFT JOIN FETCH d.tipoDefecto "
+            + "WHERE r.idUsuario = :usuarioId")
+    List<Reporte> findByUsuarioIdWithDefectos(@Param("usuarioId") Long usuarioId);
 }

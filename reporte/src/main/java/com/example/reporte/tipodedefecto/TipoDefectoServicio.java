@@ -38,7 +38,9 @@ public class TipoDefectoServicio {
     }
 
     public TipoDefecto saveOrUpdate(TipoDefecto tipoDefecto) {
-        // Validar nombre único al editar
+        String nombreNormalizado = tipoDefecto.getNombre().trim().toUpperCase();
+        tipoDefecto.setNombre(nombreNormalizado);
+
         if (tipoDefecto.getIdTipoDefecto() != null) {
             Optional<TipoDefecto> existente = tipoDefectoRepositorio.findByNombreAndIdTipoDefectoNot(
                     tipoDefecto.getNombre(),

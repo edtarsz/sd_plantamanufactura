@@ -387,6 +387,224 @@ header {
     position: relative;
 }
 
+
+.summary-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.summary-subtitle {
+    font-weight: 500;
+    color: #34495e;
+    margin: 1rem 0;
+    font-size: 0.95em;
+}
+
+.highlight {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.defectos-section {
+    margin-top: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.defecto-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.defecto-item:last-child {
+    border-bottom: none;
+}
+
+.defecto-type {
+    flex: 1;
+    font-weight: 500;
+    color: #c0392b;
+}
+
+.defecto-qty {
+    width: 50px;
+    text-align: center;
+    background: #e74c3c;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.defecto-desc {
+    flex: 2;
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.back-button {
+    margin-top: 1.5rem;
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.3s ease;
+}
+
+.back-button:hover {
+    background: #2980b9;
+}
+
+/* Estilos para detalle de reporte */
+.summary-header-detalle {
+    border-bottom: 2px solid #3498db;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+.detalle-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detalle-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+.detalle-label {
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+.detalle-value {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.highlight {
+    color: #27ae60;
+}
+
+/* Estilos para lista de defectos */
+.defectos-container {
+    margin-top: 1.5rem;
+}
+
+.defectos-container h4 {
+    color: #34495e;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.defecto-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    padding: 1.2rem;
+    border-left: 4px solid;
+}
+
+.defecto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.tipo-defecto {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+}
+
+.tipo-defecto.critico {
+    color: #c0392b;
+    border-color: #c0392b;
+    background: #f9e6e5;
+}
+
+.tipo-defecto.moderado {
+    color: #f1c40f;
+    border-color: #f1c40f;
+    background: #fcf3cf;
+}
+
+.tipo-defecto.leve {
+    color: #2ecc71;
+    border-color: #2ecc71;
+    background: #e8f6ee;
+}
+
+.cantidad-defecto {
+    font-weight: 600;
+    color: #3498db;
+}
+
+.defecto-descripcion {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.sin-defectos {
+    text-align: center;
+    color: #95a5a6;
+    padding: 1rem;
+    border: 2px dashed #ecf0f1;
+    border-radius: 8px;
+}
+
+.btn-volver {
+    margin-top: 2rem;
+    width: 100%;
+    padding: 1rem;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-volver:hover {
+    background: #2980b9;
+}
+
+.detalle-value:empty::before {
+    content: "N/A";
+    color: #999;
+    font-style: italic;
+}
+
+/* Manejar errores */
+.error {
+    color: #dc3545;
+    padding: 1rem;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+}
+
 /* Estilos responsivos adicionales */
 @media (max-width: 767px) {
     .table-container {

@@ -25,210 +25,363 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
     });
 
-    const currencyUsdBtn = document.getElementById('currency-usd');
-    const currencyMxnBtn = document.getElementById('currency-mxn');
-    const filterSelects = document.querySelectorAll('.filters select');
+    let allReports = [];
+    let currentCurrency = 'USD';
+    let conversionRate = 1;
+    let currentFilters = {};
+    let selectedReportId = null;
+
+    // Elementos del DOM
     const tableBody = document.querySelector('.table-body');
     const summaryContent = document.querySelector('.summary-content');
-    const exportFormatSelect = document.getElementById('export-format-select');
-    const exportBtnMain = document.getElementById('export-btn-main');
-    const dateInicialInput = document.getElementById('date-inicial');
-    const dateFinalInput = document.getElementById('date-final');
-    const exportBtnDate = document.getElementById('export-btn-date');
+    const currencyUSD = document.getElementById('currency-usd');
+    const currencyMXN = document.getElementById('currency-mxn');
 
-    let currentCurrency = 'USD';
-    let currentFilters = {};
+    // Cargar datos iniciales
+    loadReports();
+    loadConversionRate();
 
-    function getFilters() {
-        const filters = {
-            moneda: currentCurrency
-        };
-        filterSelects.forEach(select => {
-            filters[select.id.replace('filter-', '')] = select.value;
-        });
-        return filters;
+    // Event Listeners
+    document.querySelectorAll('select').forEach(select => {
+        select.addEventListener('change', applyFilters);
+    });
+
+    document.querySelectorAll('.currency-btn').forEach(btn => {
+        btn.addEventListener('click', handleCurrencyChange);
+    });
+
+    document.getElementById('export-btn-main').addEventListener('click', handleExport);
+    document.getElementById('export-btn-date').addEventListener('click', handleDateExport);
+
+    // Cargar reportes
+
+    async function loadReports() {
+        try {
+            const userId = getUserId();
+
+            if (!userId) {
+                window.location.href = '/login'; // Redirigir si no hay usuario
+                return;
+            }
+
+            const response = await fetch(`/api/v1/reportes/usuario/${userId}?projection=conDetalles`);
+
+            if (!response.ok) {
+                throw new Error('Error al cargar reportes');
+            }
+
+            allReports = await response.json();
+            applyFilters();
+        } catch (error) {
+            console.error('Error cargando reportes:', error);
+            // Mostrar mensaje de error en la UI
+            tableBody.innerHTML = `<div class="error">${error.message}</div>`;
+        }
     }
 
-    function displayTableData(data = []) {
-        tableBody.innerHTML = '';
+    async function loadReportDetails(reportId) {
+        try {
+            const response = await fetch(`/api/v1/reportes/detalle/${reportId}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Error cargando detalles:', error);
+            return null;
+        }
+    }
 
-        if (data.length === 0) {
-            tableBody.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #555;">No se encontraron datos con los filtros seleccionados.</div>';
-            return;
+    // Aplicar filtros
+    function applyFilters() {
+        currentFilters = {
+            costSort: document.getElementById('filter-lote').value,
+            dateFilter: document.getElementById('filter-fecha').value,
+            inspector: document.getElementById('filter-inspector').value,
+            lote: document.getElementById('filter-lote').value
+        };
+
+        let filtered = [...allReports];
+
+        // Aplicar filtros
+        if (currentFilters.dateFilter) {
+            filtered = filterByDate(filtered, currentFilters.dateFilter);
         }
 
-        data.forEach(item => {
+        if (currentFilters.inspector) {
+            filtered = filtered.filter(r => r.inspector === currentFilters.inspector);
+        }
+
+        if (currentFilters.lote) {
+            filtered = filtered.filter(r => r.loteId === currentFilters.lote);
+        }
+
+        // Ordenar
+        if (currentFilters.costSort === 'loteA') {
+            filtered.sort((a, b) => a.costoTotal - b.costoTotal);
+        } else if (currentFilters.costSort === 'loteB') {
+            filtered.sort((a, b) => b.costoTotal - a.costoTotal);
+        }
+
+        renderTable(filtered);
+        updateSummary(filtered);
+    }
+
+    // Renderizar tabla
+    function renderTable(reports) {
+        tableBody.innerHTML = '';
+
+        reports.forEach(report => {
             const row = document.createElement('div');
-            row.classList.add('table-row', 'dark');
+            row.className = `table-row ${selectedReportId === report.idReporte ? 'selected' : ''}`;
+            row.innerHTML = `
+                <div class="td id">${report.idReporte}</div>
+                <div class="td costo">$${report.costoTotal}</div>
+                <div class="td inspector">${report.inspector}</div>
+                <div class="td lote">${report.loteId}</div>
+            `;
 
-            const idCell = document.createElement('div');
-            idCell.classList.add('td', 'id');
-            idCell.textContent = item.id || 'N/A';
-            row.appendChild(idCell);
+            row.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(`/api/v1/reportes/${report.idReporte}`);
+                    if (!response.ok)
+                        throw new Error('Error cargando detalle');
 
-            const piezaCell = document.createElement('div');
-            piezaCell.classList.add('td', 'pieza');
-            piezaCell.textContent = item.pieza || 'N/A';
-            row.appendChild(piezaCell);
+                    const reporteDetalle = await response.json();
+                    updateSummary(reporteDetalle);
 
-            const inspectorCell = document.createElement('div');
-            inspectorCell.classList.add('td', 'inspector');
-            inspectorCell.textContent = item.inspector || 'N/A';
-            row.appendChild(inspectorCell);
-
-            const loteCell = document.createElement('div');
-            loteCell.classList.add('td', 'lote');
-            loteCell.textContent = item.lote || 'N/A';
-            row.appendChild(loteCell);
-
-            const defectoCell = document.createElement('div');
-            defectoCell.classList.add('td', 'defecto');
-            defectoCell.textContent = item.tipoDefecto || 'N/A';
-            row.appendChild(defectoCell);
+                } catch (error) {
+                    console.error(error);
+                    summaryContent.innerHTML = `<div class="error">${error.message}</div>`;
+                }
+            });
 
             tableBody.appendChild(row);
         });
     }
 
-    function displaySummaryData(summary = null) {
-        summaryContent.innerHTML = '';
+    // Actualizar resumen
+    function updateSummary(data) {
+        if (Array.isArray(data)) {
+            // Modo lista de reportes
+            const total = data.reduce((sum, r) => sum + r.costoTotal, 0);
+            const average = data.length > 0 ? total / data.length : 0;
 
-        if (!summary) {
-            summaryContent.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #aaa;">No hay datos para el resumen.</div>';
+            summaryContent.innerHTML = `
+            <div class="summary-row">
+                <span class="summary-label">Reportes Totales:</span>
+                <span>${data.length}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Costo Total:</span>
+                <span>${formatCurrency(total * conversionRate)}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Costo Promedio:</span>
+                <span>${formatCurrency(average * conversionRate)}</span>
+            </div>
+        `;
+        } else {
+            // Modo detalle de un reporte
+            const report = data;
+            summaryContent.innerHTML = `
+            <div class="summary-header-detalle">
+                <h3>Reporte #${report.idReporte}</h3>
+                <span class="fecha-reporte">${new Date(report.fecha).toLocaleDateString('es-MX')}</span>
+            </div>
+            <div class="detalle-item">
+                <span class="detalle-label">Lote:</span>
+                <span class="detalle-value">${report.loteId || 'N/A'}</span>
+            </div>
+            <div class="detalle-item">
+                <span class="detalle-label">Total:</span>
+                <span class="detalle-value highlight">${formatCurrency(report.costoTotal * conversionRate)}</span>
+            </div>
+        `;
+        }
+    }
+
+    function generateGeneralSummary(reports, total) {
+        const average = reports.length > 0 ? total / reports.length : 0;
+
+        return `
+        <div class="summary-row">
+            <span class="summary-label">Reportes Totales:</span>
+            <span>${reports.length}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Costo Total:</span>
+            <span>${formatCurrency(total * conversionRate)}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Costo Promedio:</span>
+            <span>${formatCurrency(average * conversionRate)}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Lote con Mayor Costo:</span>
+            <span>${getMostExpensiveLot(reports)}</span>
+        </div>
+    `;
+    }
+
+    function getMostExpensiveLot(reports) {
+        if (reports.length === 0)
+            return 'N/A';
+
+        const lotMap = reports.reduce((acc, report) => {
+            acc[report.loteId] = (acc[report.loteId] || 0) + report.costoTotal;
+            return acc;
+        }, {});
+
+        const [maxLot] = Object.entries(lotMap).reduce(
+                (max, entry) => entry[1] > max[1] ? entry : max,
+                ['', -Infinity]
+                );
+
+        return maxLot || 'N/A';
+    }
+
+    // Funciones de ayuda
+    function formatCurrency(amount) {
+        if (isNaN(amount))
+            return "$0.00";
+
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currentCurrency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
+    }
+
+    async function loadConversionRate() {
+        if (currentCurrency === 'MXN') {
+            const response = await fetch('/api/v1/conversion/usd-a-mxn');
+            const data = await response.json();
+            conversionRate = data.tasa;
+        }
+    }
+
+    function handleCurrencyChange(e) {
+        currentCurrency = e.target.id === 'currency-usd' ? 'USD' : 'MXN';
+        currencyUSD.classList.toggle('active', currentCurrency === 'USD');
+        currencyMXN.classList.toggle('active', currentCurrency === 'MXN');
+        loadConversionRate().then(applyFilters);
+    }
+
+    async function handleExport() {
+        const format = document.getElementById('export-format-select').value;
+        const params = new URLSearchParams({
+            ...currentFilters,
+            currency: currentCurrency,
+            format
+        });
+
+        window.location.href = `/api/v1/reportes/exportar?${params}`;
+    }
+
+    function handleDateExport() {
+        const start = document.getElementById('date-inicial').value;
+        const end = document.getElementById('date-final').value;
+
+        if (!start || !end) {
+            alert('Seleccione ambas fechas');
             return;
         }
 
-        function createSummaryRow(label, value) {
-            const row = document.createElement('div');
-            row.classList.add('summary-row');
-            const labelSpan = document.createElement('span');
-            labelSpan.classList.add('summary-label');
-            labelSpan.textContent = label + ':';
-            const valueSpan = document.createElement('span');
-            valueSpan.classList.add('summary-value');
-            valueSpan.textContent = value || 'N/A';
-            row.appendChild(labelSpan);
-            row.appendChild(valueSpan);
-            return row;
-        }
-        function createDivider() {
-            const div = document.createElement('div');
-            div.classList.add('summary-divider');
-            return div;
-        }
-
-        summaryContent.appendChild(createSummaryRow('ID del Lote', summary.loteId));
-        summaryContent.appendChild(createSummaryRow('Total Defectos', summary.totalDefectos));
-        summaryContent.appendChild(createSummaryRow('Costo Total', `${summary.costoTotal || 0} ${currentCurrency}`));
-        summaryContent.appendChild(createDivider());
-
-        if (summary.detallesPorDefecto && summary.detallesPorDefecto.length > 0) {
-            summary.detallesPorDefecto.forEach(detalle => {
-                summaryContent.appendChild(createSummaryRow('Defecto', detalle.tipo));
-                summaryContent.appendChild(createSummaryRow('Cantidad', detalle.cantidad));
-                summaryContent.appendChild(createSummaryRow('Costo', `${detalle.costo || 0} ${currentCurrency}`));
-                summaryContent.appendChild(createDivider());
-            });
-    }
+        window.location.href = `/api/v1/reportes/exportar?fechaInicio=${start}&fechaFin=${end}&currency=${currentCurrency}`;
     }
 
-    async function cargarReportes() {
-        currentFilters = getFilters();
-        console.log('Cargando reportes con filtros:', currentFilters);
-        tableBody.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #555;">Cargando datos...</div>'; // Mostrar carga
-        summaryContent.innerHTML = '<div class="loading-placeholder" style="text-align: center; padding: 20px; color: #aaa;">Cargando resumen...</div>';
+    function getUserId() {
+        const token = localStorage.getItem('authToken');
 
-        // Aquí tenemos que hacer llamada a la API backend
-        // const url = `/api/v1/reportes?moneda=${currentFilters.moneda}&fecha=${currentFilters.fecha}...`; // Construir URL con filtros
+        if (!token) {
+            window.location.href = '/login';
+            return null;
+        }
+
         try {
-            // const response = await fetch(url); // Descomentar para llamada real
-            // if (!response.ok) throw new Error('Error al cargar datos');
-            // const result = await response.json();
+            // Decodificar el payload del JWT
+            const payload = JSON.parse(atob(token.split('.')[1]));
 
-            // Datos de ejemplo para simular por ahora, aqui debemos recuperar de la BD
-            await new Promise(resolve => setTimeout(resolve, 700));
-            const result = {
-                tableData: [
-                    {id: 'D001', pieza: 'Cepillo X', inspector: 'Ana C.', lote: 'LOTE01', tipoDefecto: 'Rayado'},
-                    {id: 'D002', pieza: 'Esponja Y', inspector: 'Juan P.', lote: 'LOTE02', tipoDefecto: 'Manchado'},
-                    {id: 'D003', pieza: 'Cepillo X', inspector: 'Ana C.', lote: 'LOTE01', tipoDefecto: 'Roto'}
-                ],
-                summaryData: {
-                    loteId: currentFilters.lote || 'Varios',
-                    totalDefectos: 3,
-                    costoTotal: 150.75,
-                    detallesPorDefecto: [
-                        {tipo: 'Rayado', cantidad: 1, costo: 50.25},
-                        {tipo: 'Manchado', cantidad: 1, costo: 40.50},
-                        {tipo: 'Roto', cantidad: 1, costo: 60.00}
-                    ]
-                }
-            };
-
-            displayTableData(result.tableData);
-            displaySummaryData(result.summaryData);
+            // Obtener el userId del claim
+            return payload.userId; // Esto coincide con el claim "userId" del Java
 
         } catch (error) {
-            console.error("Error cargando reportes:", error);
-            tableBody.innerHTML = `<div class="loading-placeholder" style="text-align: center; padding: 20px; color: red;">Error al cargar datos: ${error.message}</div>`;
-            summaryContent.innerHTML = `<div class="loading-placeholder" style="text-align: center; padding: 20px; color: orange;">Error al cargar resumen.</div>`;
+            console.error('Error decodificando token:', error);
+            localStorage.removeItem('authToken');
+            window.location.href = '/login';
+            return null;
         }
     }
 
+    function filterByDate(reports, filterType) {
+        const today = new Date();
 
-
-    currencyUsdBtn.addEventListener('click', () => {
-        if (currentCurrency !== 'USD') {
-            currencyUsdBtn.classList.add('active');
-            currencyMxnBtn.classList.remove('active');
-            currentCurrency = 'USD';
-            cargarReportes();
-        }
-    });
-
-    currencyMxnBtn.addEventListener('click', () => {
-        if (currentCurrency !== 'MXN') {
-            currencyMxnBtn.classList.add('active');
-            currencyUsdBtn.classList.remove('active');
-            currentCurrency = 'MXN';
-            cargarReportes();
-        }
-    });
-
-    // Cambio en Filtros
-    filterSelects.forEach(select => {
-        select.addEventListener('change', () => {
-
-            cargarReportes();
+        return reports.filter(report => {
+            const reportDate = new Date(report.fecha);
+            switch (filterType) {
+                case 'hoy':
+                    return reportDate.toDateString() === today.toDateString();
+                case 'semana':
+                    const oneWeekAgo = new Date(today);
+                    oneWeekAgo.setDate(today.getDate() - 7);
+                    return reportDate >= oneWeekAgo;
+                case 'mes':
+                    const oneMonthAgo = new Date(today);
+                    oneMonthAgo.setMonth(today.getMonth() - 1);
+                    return reportDate >= oneMonthAgo;
+                default:
+                    return true;
+            }
         });
-    });
+    }
 
+    function generateReportSummary(report) {
+        const fechaFormateada = new Date(report.fecha).toLocaleDateString('es-MX', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
 
-    // Botón Exportar Vista Actual
-    exportBtnMain.addEventListener('click', () => {
-        const format = exportFormatSelect.value;
-        const filters = getFilters();
-        console.log(`Exportando vista actual en formato ${format} con filtros:`, filters);
-        // Aquí vamos a ocupar hacer la llamada fetch al endpoint de exportación, pasando filtros y formato
-        alert(`Simulación de exportación en ${format}. Revisa la consola.`);
-        // window.location.href = `/api/v1/reportes/exportar?formato=${format}&moneda=${filters.moneda}...`; // Ejemplo
-    });
+        return `
+        <div class="summary-header-detalle">
+            <h3>Reporte #${report.idReporte}</h3>
+            <span class="fecha-reporte">${fechaFormateada}</span>
+        </div>
+        
+        <div class="detalle-section">
+            <div class="detalle-item">
+                <span class="detalle-label">Inspector:</span>
+                <span class="detalle-value">${report.inspector}</span>
+            </div>
+            <div class="detalle-item">
+                <span class="detalle-label">Lote:</span>
+                <span class="detalle-value">${report.loteId}</span>
+            </div>
+            <div class="detalle-item">
+                <span class="detalle-label">Total:</span>
+                <span class="detalle-value highlight">${formatCurrency(report.costoTotal * conversionRate)}</span>
+            </div>
+        </div>
 
-    // Botón Exportar por Fechas
-    exportBtnDate.addEventListener('click', () => {
-        const fechaInicial = dateInicialInput.value;
-        const fechaFinal = dateFinalInput.value;
-        const format = 'pdf';
-
-        if (!fechaInicial || !fechaFinal) {
-            alert('Por favor, seleccione ambas fechas para exportar por rango.');
-            return;
-        }
-        console.log(`Exportando rango de fechas (${fechaInicial} - ${fechaFinal}) en formato ${format}`);
-        alert(`Simulación de exportación por fechas en ${format}. Revisa la consola.`);
-        // window.location.href = `/api/v1/reportes/exportar-rango?formato=${format}&inicio=${fechaInicial}&fin=${fechaFinal}`; // Ejemplo
-    });
-
-    cargarReportes();
-
+        <div class="defectos-container">
+            <h4>Defectos Detectados</h4>
+            ${report.defectos && report.defectos.length > 0
+                ? report.defectos.map(defecto => `
+                    <div class="defecto-card">
+                        <div class="defecto-header">
+                            <span class="tipo-defecto ${defecto.tipoDefecto.toLowerCase()}">${defecto.tipoDefecto}</span>
+                            <span class="cantidad-defecto">${defecto.cantidad} piezas</span>
+                        </div>
+                        ${defecto.descripcion ? `
+                        <div class="defecto-descripcion">
+                            ${defecto.descripcion}
+                        </div>
+                        ` : ''}
+                    </div>
+                `).join('')
+                : '<div class="sin-defectos">No se registraron defectos</div>'
+                }
+        </div>
+    `;
+    }
 });

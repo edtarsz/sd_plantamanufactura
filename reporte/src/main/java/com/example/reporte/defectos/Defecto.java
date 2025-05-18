@@ -42,7 +42,7 @@ public class Defecto {
     private String detalles;
 
     @Column(name = "costo", nullable = false)
-    private Float costo;
+    private Double costo;
 
     @Column(name = "cantidad_piezas", nullable = false)
     private int cantidad_piezas;

@@ -58,7 +58,7 @@ public class Reporte {
     }
 
     @Column(name = "costoTotal", nullable = false)
-    private Float costoTotal;
+    private Double costoTotal;
 
     @Column(name = "idUsuario", nullable = false)
     private Long idUsuario;
