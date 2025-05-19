@@ -26,4 +26,7 @@ public interface ReporteRepository extends JpaRepository<Reporte, Long>, JpaSpec
             + "LEFT JOIN FETCH d.tipoDefecto "
             + "WHERE r.idUsuario = :usuarioId")
     List<Reporte> findByUsuarioIdWithDefectos(@Param("usuarioId") Long usuarioId);
+
+    @Query("SELECT r FROM Reporte r LEFT JOIN FETCH r.defectos")
+    List<Reporte> findAllWithDefectos();
 }

@@ -5,6 +5,7 @@
 package com.example.reporte;
 
 import com.example.reporte.defectos.DefectoDTO;
+import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +24,8 @@ public class ReporteDTO {
 
     private Long idReporte;
     private String loteId;
-    private Double costoTotal;
     private String inspector;
+    private Double costoTotal;
+    private Date fecha;
     private List<DefectoDTO> defectos;
 }

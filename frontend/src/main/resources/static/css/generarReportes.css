@@ -164,32 +164,45 @@ select {
     border-bottom: 2px solid #eee;
     font-weight: bold;
     color: #2c4356;
+    min-width: 600px;
 }
 
 .th, .td {
     padding: 12px 15px;
     text-align: left;
+    flex-shrink: 0
 }
-
 .id {
-    width: 50px;
+    width: 15%;
+    min-width: 60px;
 }
 
-.pieza {
-    width: 100px;
+.costo {
+    width: 25%;
+    min-width: 100px;
 }
 
 .inspector {
-    width: 150px;
+    width: 30%;
+    min-width: 150px;
 }
 
 .lote {
-    width: 80px;
+    width: 30%;
+    min-width: 120px;
 }
 
 .defecto {
     flex: 1;
     min-width: 150px;
+}
+
+.td {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .table-body {
@@ -236,6 +249,28 @@ select {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+    box-sizing: border-box;
+
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f5f5f5;
+}
+
+/* Para navegadores WebKit (Chrome, Safari) */
+.summary-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.summary-content::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 3px;
+}
+
+.summary-content::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    border-radius: 3px;
 }
 
 .summary-row {
@@ -479,7 +514,6 @@ header {
     background: #f8f9fa;
     border-radius: 8px;
     padding: 1.5rem;
-    margin-bottom: 2rem;
 }
 
 .detalle-item {
@@ -531,6 +565,7 @@ header {
 }
 
 .tipo-defecto {
+    color: #f1c40f;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.9rem;
@@ -628,23 +663,11 @@ header {
 }
 
 .tipo-defecto {
+    color: black;
     padding: 0.25rem 0.75rem;
     border-radius: 15px;
     font-weight: 600;
     font-size: 0.9em;
-}
-
-.tipo-defecto.critico {
-    background: #fee2e2;
-    color: #dc2626;
-}
-.tipo-defecto.moderado {
-    background: #fef3c7;
-    color: #d97706;
-}
-.tipo-defecto.leve {
-    background: #dcfce7;
-    color: #16a34a;
 }
 
 .defecto-costo {
@@ -673,17 +696,52 @@ header {
     font-weight: 500;
 }
 
+
+
 /* Estilos responsivos adicionales */
 @media (max-width: 767px) {
     .table-container {
-        overflow-x: auto;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    .table-header, .table-row {
-        min-width: 600px;
+    .table-header {
+        display: none;
     }
 
-    .summary-section {
-        margin-top: 20px;
+    .table-row {
+        flex-direction: column;
+        padding: 15px;
+        border-bottom: 2px solid #eee;
+        min-width: 0;
+    }
+
+    .td {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        white-space: normal;
+    }
+
+    .td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #2c4356;
+        margin-right: 15px;
+        flex: 0 0 120px;
+    }
+
+    .td:last-child {
+        border-bottom: none;
+    }
+
+    .table-body {
+        max-height: none;
+        overflow: visible;
     }
 }

@@ -90,6 +90,10 @@ public class ReporteServicio {
         return reporteRepository.save(reporte);
     }
 
+    public List<Reporte> getTodosReportesConDetalles() {
+        return reporteRepository.findAllWithDefectos();
+    }
+
     public void delete(Long id) {
         reporteRepository.deleteById(id);
     }

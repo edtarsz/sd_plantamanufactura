@@ -35,10 +35,10 @@ public class ReporteControlador {
         this.reporteServicio = reporteServicio;
     }
 
-    @GetMapping
-    public List<Reporte> getAll() {
-        return reporteServicio.getReportes();
-    }
+//    @GetMapping
+//    public List<Reporte> getAll() {
+//        return reporteServicio.getReportes();
+//    }
 
     @GetMapping("/detalle/{idReporte}")
     public ResponseEntity<Reporte> getDetalleReporte(@PathVariable Long idReporte) {
@@ -97,16 +97,42 @@ public class ReporteControlador {
         reporteServicio.exportarReportes(params, currency, response.getOutputStream());
     }
 
-    @GetMapping("/usuario/{userId}")
-    public ResponseEntity<List<ReporteDTO>> getReportesPorUsuario(@PathVariable Long userId) {
-        List<Reporte> reportes = reporteServicio.getReportesConDetalles(userId);
+//    @GetMapping("/usuario/{userId}")
+//    public ResponseEntity<List<ReporteDTO>> getReportesPorUsuario(@PathVariable Long userId) {
+//        List<Reporte> reportes = reporteServicio.getReportesConDetalles(userId);
+//
+//        List<ReporteDTO> dtos = reportes.stream().map(reporte -> {
+//            ReporteDTO dto = new ReporteDTO();
+//            dto.setIdReporte(reporte.getIdReporte());
+//            dto.setLoteId(reporte.getLoteId());
+//            dto.setCostoTotal(reporte.getCostoTotal());
+//            dto.setInspector(reporte.getInspector());
+//            dto.setDefectos(reporte.getDefectos().stream().map(defecto -> {
+//                DefectoDTO defectoDto = new DefectoDTO();
+//                defectoDto.setTipoDefecto(defecto.getTipoDefecto().getNombre());
+//                defectoDto.setCantidad_piezas(defecto.getCantidad_piezas());
+//                defectoDto.setCosto(defecto.getCosto());
+//                defectoDto.setDetalles(defecto.getDetalles());
+//                return defectoDto;
+//            }).collect(Collectors.toList()));
+//            return dto;
+//        }).collect(Collectors.toList());
+//
+//        return ResponseEntity.ok(dtos);
+//    }
+
+    @GetMapping
+    public ResponseEntity<List<ReporteDTO>> getTodosReportes() {
+        List<Reporte> reportes = reporteServicio.getTodosReportesConDetalles();
 
         List<ReporteDTO> dtos = reportes.stream().map(reporte -> {
             ReporteDTO dto = new ReporteDTO();
             dto.setIdReporte(reporte.getIdReporte());
             dto.setLoteId(reporte.getLoteId());
-            dto.setCostoTotal(reporte.getCostoTotal());
             dto.setInspector(reporte.getInspector());
+            dto.setCostoTotal(reporte.getCostoTotal());
+            dto.setFecha(reporte.getFecha());
+
             dto.setDefectos(reporte.getDefectos().stream().map(defecto -> {
                 DefectoDTO defectoDto = new DefectoDTO();
                 defectoDto.setTipoDefecto(defecto.getTipoDefecto().getNombre());
@@ -115,6 +141,7 @@ public class ReporteControlador {
                 defectoDto.setDetalles(defecto.getDetalles());
                 return defectoDto;
             }).collect(Collectors.toList()));
+
             return dto;
         }).collect(Collectors.toList());
 

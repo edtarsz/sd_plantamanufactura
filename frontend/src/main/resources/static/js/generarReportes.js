@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const response = await fetch(`/api/v1/reportes/usuario/${userId}?projection=conDetalles`);
+            const response = await fetch(`/api/v1/reportes`);
 
             if (!response.ok) {
                 throw new Error('Error al cargar reportes');
@@ -132,11 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('div');
             row.className = `table-row ${selectedReportId === report.idReporte ? 'selected' : ''}`;
             row.innerHTML = `
-                <div class="td id">${report.idReporte}</div>
-                <div class="td costo">$${report.costoTotal}</div>
-                <div class="td inspector">${report.inspector}</div>
-                <div class="td lote">${report.loteId}</div>
-            `;
+            <div class="td id" data-label="ID">${report.idReporte}</div>
+            <div class="td costo" data-label="COSTO TOTAL">${report.costoTotal}</div>
+            <div class="td inspector" data-label="INSPECTOR">${report.inspector}</div>
+            <div class="td lote" data-label="LOTE">${report.loteId}</div>
+        `;
 
             row.addEventListener('click', async () => {
                 try {
@@ -334,7 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="defectos-container">
             <h4>Defectos Detectados (${report.defectos.length})</h4>
-            <p>*******************************************</p>
             ${report.defectos.map(defecto => `
                 <div class="defecto-card">
                     <div class="defecto-header">
@@ -357,7 +356,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="propiedad-label">Inspector:</span>
                             <span class="propiedad-valor">${report.inspector}</span>
                         </div>
-                        <p>*******************************************</p>
+        
+                        <div class="defecto-propiedad">
+                            <span class="propiedad-label">Costo:</span>
+                            <span class="defecto-costo">
+                            ${formatCurrency(defecto.costo * conversionRate)}
+                        </span>
+                        </div>
                     </div>
                 </div>
             `).join('')}
