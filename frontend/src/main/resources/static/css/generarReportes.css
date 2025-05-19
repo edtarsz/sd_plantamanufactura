@@ -555,6 +555,8 @@ header {
     margin-bottom: 1rem;
     padding: 1.2rem;
     border-left: 4px solid;
+    min-width: 0;
+    word-break: break-word;
 }
 
 .defecto-header {
@@ -597,6 +599,11 @@ header {
 }
 
 .defecto-descripcion {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: #7f8c8d;
     font-size: 0.95rem;
     line-height: 1.4;
@@ -655,6 +662,10 @@ header {
     padding: 1rem;
 }
 
+.defecto-card:hover .defecto-descripcion {
+    -webkit-line-clamp: unset;
+}
+
 .defecto-header {
     display: flex;
     justify-content: space-between;
@@ -679,6 +690,7 @@ header {
     display: grid;
     gap: 0.5rem;
     font-size: 0.9em;
+    overflow: hidden;
 }
 
 .defecto-propiedad {
@@ -694,9 +706,11 @@ header {
 .propiedad-valor {
     color: #1f2937;
     font-weight: 500;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
 }
-
-
 
 /* Estilos responsivos adicionales */
 @media (max-width: 767px) {
