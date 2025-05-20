@@ -26,6 +26,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -574,5 +575,52 @@ public class ReporteServicio {
 
         // Usar el mismo método de generación de PDF
         generatePdfReport(reportes, currency, outputStream);
+    }
+
+    /**
+     * Exporta reportes basado en un rango de fechas sin filtro de usuario
+     */
+    public void exportarReportesPorFechas(String fechaInicio, String fechaFin, String currency, OutputStream outputStream) {
+        try {
+            // Convertir fechas de String a Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            final Date startDate = dateFormat.parse(fechaInicio);
+            
+            // Crear una fecha final que incluye todo el día (añadir un día)
+            Date tempEndDate = dateFormat.parse(fechaFin);
+            Calendar c = Calendar.getInstance();
+            c.setTime(tempEndDate);
+            c.add(Calendar.DATE, 1); // Añadir un día para incluir el día final completo
+            final Date endDate = c.getTime(); // Crear variable final para usar en lambda
+            
+            // Crear especificación para filtrar por rango de fechas
+            Specification<Reporte> spec = (root, query, cb) -> {
+                return cb.between(root.get("fecha"), startDate, endDate);
+            };
+            
+            // Buscar reportes con la especificación
+            List<Reporte> reportes = reporteRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "fecha"));
+            
+            // Generar PDF con los reportes filtrados
+            generatePdfReport(reportes, currency, outputStream);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al exportar reportes por fechas: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Obtiene una lista de todos los inspectores únicos de los reportes
+     * @return Lista de nombres de inspectores
+     */
+    public List<String> getInspectoresUnicos() {
+        return reporteRepository.findInspectoresUnicos();
+    }
+    
+    /**
+     * Obtiene una lista de todos los lotes únicos de los reportes
+     * @return Lista de IDs de lote
+     */
+    public List<String> getLotesUnicos() {
+        return reporteRepository.findLotesUnicos();
     }
 }

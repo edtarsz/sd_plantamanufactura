@@ -222,7 +222,7 @@ select {
 }
 
 .table-row.selected {
-    background-color: #e9f7fd;
+    background-color: rgba(44, 67, 86, 0.1);
     border-left: 4px solid #2c4356;
 }
 
@@ -332,7 +332,9 @@ select {
 }
 
 .export-btn.active {
-    background-color: #2c4356;
+    background-color: #1a6e5a;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .export-btn:disabled {

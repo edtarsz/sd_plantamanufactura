@@ -77,7 +77,10 @@ public class ReporteControlador {
             @RequestParam(defaultValue = "USD") String currency,
             @RequestParam(defaultValue = "pdf") String format,
             @RequestParam(required = false) Long idUsuario,
-            @RequestParam(required = false) Long reporteId, // Parameter to receive specific reporteId
+            @RequestParam(required = false) Long reporteId,
+            @RequestParam(required = false) String allUsers, // New parameter to include all users
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin,
             HttpServletResponse response) throws IOException {
 
         try {
@@ -105,14 +108,26 @@ public class ReporteControlador {
                 reporteServicio.exportarReportePorId(reporteId, currency, response.getOutputStream());
                 return;
             }
+            
+            // Check if we're exporting by date range for all users
+            if (fechaInicio != null && fechaFin != null && "true".equals(allUsers)) {
+                reporteServicio.exportarReportesPorFechas(fechaInicio, fechaFin, currency, response.getOutputStream());
+                return;
+            }
 
-            // If no specific report ID, proceed with filtered export
+            // If no specific report ID or date range for all users, proceed with filtered export
             Map<String, String> params = new HashMap<>();
             params.put("costSort", costSort != null ? costSort : "");
             params.put("dateFilter", dateFilter != null ? dateFilter : "");
             params.put("inspector", inspector != null ? inspector : "");
             params.put("lote", lote != null ? lote : "");
             params.put("format", format);
+            
+            // For date range filtering with user ID
+            if (fechaInicio != null && fechaFin != null) {
+                params.put("fechaInicio", fechaInicio);
+                params.put("fechaFin", fechaFin);
+            }
 
             // Use default user ID if not provided
             if (idUsuario == null) {
@@ -159,5 +174,17 @@ public class ReporteControlador {
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/inspectores")
+    public ResponseEntity<List<String>> getInspectores() {
+        List<String> inspectores = reporteServicio.getInspectoresUnicos();
+        return ResponseEntity.ok(inspectores);
+    }
+    
+    @GetMapping("/lotes")
+    public ResponseEntity<List<String>> getLotes() {
+        List<String> lotes = reporteServicio.getLotesUnicos();
+        return ResponseEntity.ok(lotes);
     }
 }

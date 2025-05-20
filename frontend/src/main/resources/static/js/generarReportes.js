@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let allReports = [];
+    let uniqueInspectors = [];
+    let uniqueLotes = [];
     let currentCurrency = 'USD';
     let conversionRate = 1;
     let currentFilters = {};
@@ -37,6 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const currencyUSD = document.getElementById('currency-usd');
     const currencyMXN = document.getElementById('currency-mxn');
     const exportBtn = document.getElementById('export-btn-main');
+    const filterCosto = document.getElementById('filter-costo');
+    const filterFecha = document.getElementById('filter-fecha');
+    const filterInspector = document.getElementById('filter-inspector');
+    const filterLote = document.getElementById('filter-lote');
 
     // Actualizar texto del botón de exportar
     function updateExportButtonText() {
@@ -60,9 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConversionRate();
 
     // Event Listeners
-    document.querySelectorAll('select').forEach(select => {
-        select.addEventListener('change', applyFilters);
-    });
+    filterCosto.addEventListener('change', applyFilters);
+    filterFecha.addEventListener('change', applyFilters);
+    filterInspector.addEventListener('change', applyFilters);
+    filterLote.addEventListener('change', applyFilters);
 
     document.querySelectorAll('.currency-btn').forEach(btn => {
         btn.addEventListener('click', handleCurrencyChange);
@@ -72,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('export-btn-date').addEventListener('click', handleDateExport);
 
     // Cargar reportes
-
     async function loadReports() {
         try {
             const userId = getUserId();
@@ -89,12 +95,49 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             allReports = await response.json();
-            applyFilters();
+            
+            // Extract unique inspectors and lotes for filters
+            uniqueInspectors = [...new Set(allReports.map(report => report.inspector))].filter(Boolean);
+            uniqueLotes = [...new Set(allReports.map(report => report.loteId))].filter(Boolean);
+            
+            // Populate filter dropdowns
+            populateFilterDropdowns();
+            
+            renderTable(allReports);
+            updateSummary(allReports);
         } catch (error) {
             console.error('Error cargando reportes:', error);
             // Mostrar mensaje de error en la UI
             tableBody.innerHTML = `<div class="error">${error.message}</div>`;
         }
+    }
+    
+    // Populate the filter dropdowns with data from the reports
+    function populateFilterDropdowns() {
+        // Clear existing options (keep the first empty option)
+        while (filterInspector.options.length > 1) {
+            filterInspector.remove(1);
+        }
+        
+        while (filterLote.options.length > 1) {
+            filterLote.remove(1);
+        }
+        
+        // Add inspector options
+        uniqueInspectors.forEach(inspector => {
+            const option = document.createElement('option');
+            option.value = inspector;
+            option.textContent = inspector;
+            filterInspector.appendChild(option);
+        });
+        
+        // Add lote options
+        uniqueLotes.forEach(lote => {
+            const option = document.createElement('option');
+            option.value = lote;
+            option.textContent = lote;
+            filterLote.appendChild(option);
+        });
     }
 
     async function loadReportDetails(reportId) {
@@ -109,11 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Aplicar filtros
     function applyFilters() {
+        // Clear selected report when filters change
+        selectedReportId = null;
+        updateExportButtonText();
+        
         currentFilters = {
-            costSort: document.getElementById('filter-lote').value,
-            dateFilter: document.getElementById('filter-fecha').value,
-            inspector: document.getElementById('filter-inspector').value,
-            lote: document.getElementById('filter-lote').value
+            costSort: filterCosto.value,
+            dateFilter: filterFecha.value,
+            inspector: filterInspector.value,
+            lote: filterLote.value
         };
 
         let filtered = [...allReports];
@@ -132,9 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Ordenar
-        if (currentFilters.costSort === 'loteA') {
+        if (currentFilters.costSort === 'asc') {
             filtered.sort((a, b) => a.costoTotal - b.costoTotal);
-        } else if (currentFilters.costSort === 'loteB') {
+        } else if (currentFilters.costSort === 'desc') {
             filtered.sort((a, b) => b.costoTotal - a.costoTotal);
         }
 
@@ -153,39 +200,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         reports.forEach(report => {
             const row = document.createElement('div');
-            row.className = `table-row ${selectedReportId === report.idReporte ? 'selected' : ''}`;
-            row.dataset.reportId = report.idReporte; // Store report ID in dataset
+            row.className = 'table-row';
+            row.dataset.reportId = report.idReporte;
             row.innerHTML = `
-            <div class="td id" data-label="ID">${report.idReporte}</div>
-            <div class="td costo" data-label="COSTO TOTAL">${formatCurrency(report.costoTotal * conversionRate)}</div>
-            <div class="td inspector" data-label="INSPECTOR">${report.inspector}</div>
-            <div class="td lote" data-label="LOTE">${report.loteId}</div>
-        `;
+                <div class="td id" data-label="ID">${report.idReporte}</div>
+                <div class="td costo" data-label="COSTO TOTAL">${formatCurrency(report.costoTotal * conversionRate)}</div>
+                <div class="td inspector" data-label="INSPECTOR">${report.inspector}</div>
+                <div class="td lote" data-label="LOTE">${report.loteId}</div>
+            `;
 
             row.addEventListener('click', async () => {
+                // Clear previous selections
+                document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+                
+                // Mark this row as selected
+                row.classList.add('selected');
+                
+                // Update the selected report ID
+                selectedReportId = report.idReporte;
+                console.log("Selected report ID:", selectedReportId);
+                
+                // Update the export button text
+                updateExportButtonText();
+                
                 try {
-                    // Remove selected class from all rows
-                    document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
-                    
-                    // Add selected class to clicked row
-                    row.classList.add('selected');
-                    
-                    // Store selected report ID
-                    selectedReportId = report.idReporte;
-                    console.log("Selected report ID:", selectedReportId);
-                    
-                    // Update export button text
-                    updateExportButtonText();
-                    
                     const response = await fetch(`/api/v1/reportes/${report.idReporte}`);
-                    if (!response.ok)
+                    if (!response.ok) {
                         throw new Error('Error cargando detalle');
-
+                    }
+                    
                     const reporteDetalle = await response.json();
                     updateSummary(reporteDetalle);
-
                 } catch (error) {
-                    console.error(error);
+                    console.error('Error loading report details:', error);
                     summaryContent.innerHTML = `<div class="error">${error.message}</div>`;
                 }
             });
@@ -314,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.append('format', format);
                 params.append('currency', currentCurrency);
                 params.append('reporteId', selectedReportId); // Add the selected report ID
+                params.append('idUsuario', userId); // Required by the backend
                 
                 const url = `/api/v1/reportes/exportar?${params.toString()}`;
                 console.log("URL for exporting single report:", url);
@@ -337,8 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
             params.append('idUsuario', userId);
 
             // Add filters if present
-            if (currentFilters.costSort)
-                params.append('costSort', currentFilters.costSort);
+            if (currentFilters.costSort === 'asc')
+                params.append('costSort', 'loteA');  // Backend expects 'loteA' for ascending
+            else if (currentFilters.costSort === 'desc')
+                params.append('costSort', 'loteB');  // Backend expects 'loteB' for descending
+                
             if (currentFilters.dateFilter)
                 params.append('dateFilter', currentFilters.dateFilter);
             if (currentFilters.inspector)
@@ -362,20 +413,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDateExport() {
-        const start = document.getElementById('date-inicial').value;
-        const end = document.getElementById('date-final').value;
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Usuario no autenticado');
+                window.location.href = '/login';
+                return;
+            }
 
-        if (!start || !end) {
-            alert('Seleccione ambas fechas');
-            return;
+            const start = document.getElementById('date-inicial').value;
+            const end = document.getElementById('date-final').value;
+            const format = document.getElementById('export-format-select').value;
+
+            if (!start || !end) {
+                alert('Seleccione ambas fechas');
+                return;
+            }
+
+            // Show loading indicator
+            const exportBtn = document.getElementById('export-btn-date');
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
+            exportBtn.disabled = true;
+
+            const params = new URLSearchParams();
+            params.append('format', format || 'pdf');
+            params.append('currency', currentCurrency);
+            params.append('allUsers', 'true'); // Special parameter to include all users' reports
+            params.append('fechaInicio', start);
+            params.append('fechaFin', end);
+
+            const url = `/api/v1/reportes/exportar?${params.toString()}`;
+            console.log("URL for date range export:", url);
+            
+            // Use window.open to allow download in new tab
+            window.open(url, '_blank');
+            
+            // Reset button after a delay
+            setTimeout(() => {
+                exportBtn.innerHTML = 'Exportar Rango <i class="fas fa-download"></i>';
+                exportBtn.disabled = false;
+            }, 1500);
+        } catch (error) {
+            console.error('Error exporting by date:', error);
+            alert('Error al generar reporte: ' + error.message);
+            
+            // Reset button if error
+            const exportBtn = document.getElementById('export-btn-date');
+            exportBtn.innerHTML = 'Exportar Rango <i class="fas fa-download"></i>';
+            exportBtn.disabled = false;
         }
-
-        window.location.href = `/api/v1/reportes/exportar?fechaInicio=${start}&fechaFin=${end}&currency=${currentCurrency}`;
     }
 
     // Function to get user ID from token or localStorage
-    function getUserId(token) {
+    function getUserId(token = localStorage.getItem('authToken')) {
         try {
+            if (!token) return null;
+            
             // Try to get from token first
             const payload = JSON.parse(atob(token.split('.')[1]));
             console.log("Token payload:", payload);

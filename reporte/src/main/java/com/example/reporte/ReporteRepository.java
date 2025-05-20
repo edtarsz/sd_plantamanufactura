@@ -29,4 +29,10 @@ public interface ReporteRepository extends JpaRepository<Reporte, Long>, JpaSpec
 
     @Query("SELECT r FROM Reporte r LEFT JOIN FETCH r.defectos")
     List<Reporte> findAllWithDefectos();
+
+    @Query("SELECT DISTINCT r.inspector FROM Reporte r ORDER BY r.inspector")
+    List<String> findInspectoresUnicos();
+    
+    @Query("SELECT DISTINCT r.loteId FROM Reporte r ORDER BY r.loteId")
+    List<String> findLotesUnicos();
 }
