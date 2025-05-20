@@ -6,12 +6,15 @@
 
         <title>Pantalla de Reportes</title>
 
+        <!-- Hojas de estilo externas -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
         <link th:href="@{/css/generarReportes.css}" rel="stylesheet">
+        
+        <!-- Script principal diferido hasta que se cargue la página -->
         <script th:src="@{/js/generarReportes.js}" defer></script>
     </head>
     <body>
+        <!-- Header con navegación y menú desplegable -->
         <header>
             <div class="logo">LOGO</div>
             <div class="menu-container">
@@ -41,7 +44,9 @@
             </div>
         </header>
 
+        <!-- Contenido principal -->
         <main>
+            <!-- Cabecera de página con título y selector de moneda -->
             <div class="page-header">
                 <h1>Pantalla de Reportes</h1>
                 <div class="currency-toggle">
@@ -50,6 +55,7 @@
                 </div>
             </div>
 
+            <!-- Sección de filtros -->
             <div class="filter-section">
                 <div class="filter-label">Filtrar por</div>
                 <div class="filters">
@@ -95,6 +101,7 @@
                 </div>
             </div>
 
+            <!-- Contenedor con tabla de reportes y sección de resumen -->
             <div class="content-container">
                 <div class="table-container">
                     <div class="table-header">
@@ -140,6 +147,7 @@
                 </div>
             </div>
 
+            <!-- Sección para exportar reportes -->
             <div class="export-section">
                 <div class="export-label">Exportar Vista Actual</div>
                 <div class="export-options"> <div class="export-format">
@@ -157,6 +165,7 @@
                 </div>
             </div>
 
+            <!-- Sección para exportar reportes por rango de fechas -->
             <div class="date-export-section">
                 <div class="date-export-header">Exportar por Fechas</div>
                 <div class="date-export-controls"> <div class="date-range">
@@ -176,6 +185,8 @@
                 </div>
             </div>
         </main>
+        
+        <!-- Script para la función de cierre de sesión -->
         <script>
             function logout() {
                 localStorage.removeItem("authToken");

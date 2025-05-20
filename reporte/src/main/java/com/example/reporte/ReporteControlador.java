@@ -1,6 +1,11 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Controlador REST para la gestión de reportes de defectos.
+ * 
+ * Proporciona endpoints para crear, consultar, actualizar, eliminar y exportar
+ * reportes de defectos en diferentes formatos.
+ * 
+ * @author Ramos
+ * @version 1.0
  */
 package com.example.reporte;
 
@@ -23,8 +28,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- *
- * @author Ramos
+ * Controlador REST que expone los endpoints relacionados con reportes de defectos.
+ * 
+ * Proporciona operaciones CRUD y funcionalidades adicionales como filtrado
+ * y exportación de reportes en diversos formatos.
  */
 @RestController
 @RequestMapping(path = "/api/v1/reportes")
@@ -32,10 +39,21 @@ public class ReporteControlador {
 
     private final ReporteServicio reporteServicio;
 
+    /**
+     * Constructor para la inyección de dependencias.
+     * 
+     * @param reporteServicio Servicio que maneja la lógica de negocio de reportes
+     */
     public ReporteControlador(ReporteServicio reporteServicio) {
         this.reporteServicio = reporteServicio;
     }
 
+    /**
+     * Endpoint para obtener el detalle completo de un reporte específico.
+     * 
+     * @param idReporte ID del reporte a consultar
+     * @return ResponseEntity con el reporte si existe, o 404 si no se encuentra
+     */
     @GetMapping("/detalle/{idReporte}")
     public ResponseEntity<Reporte> getDetalleReporte(@PathVariable Long idReporte) {
         return reporteServicio.getReporte(idReporte)
@@ -43,22 +61,46 @@ public class ReporteControlador {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Endpoint para obtener un reporte por su ID.
+     * 
+     * @param idReporte ID del reporte a consultar
+     * @return Optional con el reporte si existe
+     */
     @GetMapping("/{idReporte}")
     public Optional<Reporte> getByID(@PathVariable("idReporte") Long idReporte) {
         return reporteServicio.getReporte(idReporte);
     }
 
+    /**
+     * Endpoint para guardar o actualizar un reporte.
+     * 
+     * @param reporte Objeto reporte a guardar o actualizar
+     * @return ResponseEntity con el reporte guardado
+     */
     @PostMapping
     public ResponseEntity<Reporte> saveOrUpdate(@RequestBody Reporte reporte) {
         Reporte savedReporte = reporteServicio.saveOrUpdate(reporte);
         return ResponseEntity.ok(savedReporte);
     }
 
+    /**
+     * Endpoint para eliminar un reporte por su ID.
+     * 
+     * @param idReporte ID del reporte a eliminar
+     */
     @DeleteMapping("/{idReporte}")
     public void delete(@PathVariable("idReporte") Long idReporte) {
         reporteServicio.delete(idReporte);
     }
 
+    /**
+     * Endpoint para filtrar reportes según criterios específicos.
+     * 
+     * @param filtros Mapa de criterios de filtrado
+     * @param idUsuario ID del usuario para filtrar reportes
+     * @return ResponseEntity con la lista de reportes filtrados
+     */
     @PostMapping("/filtrar")
     public ResponseEntity<List<Reporte>> filtrarReportes(
             @RequestBody Map<String, String> filtros,
@@ -68,6 +110,26 @@ public class ReporteControlador {
         return ResponseEntity.ok(reportesFiltrados);
     }
 
+    /**
+     * Endpoint para exportar reportes en diferentes formatos.
+     * 
+     * Permite exportar reportes filtrados por diversos criterios, reportes individuales
+     * por ID, o reportes por rango de fechas para todos los usuarios.
+     * 
+     * @param costSort Criterio de ordenamiento por costo
+     * @param dateFilter Filtro de fecha (hoy, semana, mes)
+     * @param inspector Filtro por inspector
+     * @param lote Filtro por lote
+     * @param currency Moneda para mostrar valores monetarios
+     * @param format Formato de exportación (pdf, excel, csv)
+     * @param idUsuario ID de usuario para filtrar reportes
+     * @param reporteId ID de un reporte específico para exportar solo ese
+     * @param allUsers Indicador para incluir reportes de todos los usuarios
+     * @param fechaInicio Fecha inicial para filtro por rango
+     * @param fechaFin Fecha final para filtro por rango
+     * @param response Objeto HttpServletResponse para escribir el documento exportado
+     * @throws IOException Si ocurre un error durante la escritura del documento
+     */
     @GetMapping("/exportar")
     public void exportarReportes(
             @RequestParam(required = false) String costSort,
@@ -149,6 +211,11 @@ public class ReporteControlador {
         }
     }
 
+    /**
+     * Endpoint para obtener todos los reportes con información resumida.
+     * 
+     * @return ResponseEntity con lista de DTOs de reportes
+     */
     @GetMapping
     public ResponseEntity<List<ReporteDTO>> getTodosReportes() {
         List<Reporte> reportes = reporteServicio.getTodosReportesConDetalles();
@@ -176,12 +243,22 @@ public class ReporteControlador {
         return ResponseEntity.ok(dtos);
     }
 
+    /**
+     * Obtiene la lista de inspectores únicos para los filtros de UI.
+     * 
+     * @return ResponseEntity con la lista de nombres de inspectores
+     */
     @GetMapping("/inspectores")
     public ResponseEntity<List<String>> getInspectores() {
         List<String> inspectores = reporteServicio.getInspectoresUnicos();
         return ResponseEntity.ok(inspectores);
     }
     
+    /**
+     * Obtiene la lista de lotes únicos para los filtros de UI.
+     * 
+     * @return ResponseEntity con la lista de IDs de lotes
+     */
     @GetMapping("/lotes")
     public ResponseEntity<List<String>> getLotes() {
         List<String> lotes = reporteServicio.getLotesUnicos();

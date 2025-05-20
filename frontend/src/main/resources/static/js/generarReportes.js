@@ -1,8 +1,43 @@
+/**
+ * Módulo para la gestión de reportes y visualización en la interfaz de usuario.
+ * 
+ * Este script maneja la carga, filtrado, visualización y exportación de reportes
+ * de defectos. Permite al usuario filtrar por diferentes criterios, seleccionar
+ * reportes individuales, y exportarlos en diferentes formatos y monedas.
+ * 
+ * @author Ramos
+ * @version 1.0
+ */
 document.addEventListener('DOMContentLoaded', () => {
+    // Configuración de navegación y menú
     const menuToggle = document.querySelector('.menu-toggle');
     const dropdownMenu = document.querySelector('.dropdown-menu');
 
-    // Toggle del menú
+    /**
+     * Variables y estado global de la aplicación
+     */
+    let allReports = [];             // Todos los reportes cargados
+    let uniqueInspectors = [];       // Lista de inspectores únicos para filtros
+    let uniqueLotes = [];            // Lista de lotes únicos para filtros
+    let currentCurrency = 'USD';     // Moneda actual para mostrar valores
+    let conversionRate = 1;          // Tasa de conversión actual
+    let currentFilters = {};         // Filtros actualmente aplicados
+    let selectedReportId = null;     // ID del reporte seleccionado actualmente
+
+    /**
+     * Referencias a elementos del DOM frecuentemente usados
+     */
+    const tableBody = document.querySelector('.table-body');
+    const summaryContent = document.querySelector('.summary-content');
+    const currencyUSD = document.getElementById('currency-usd');
+    const currencyMXN = document.getElementById('currency-mxn');
+    const exportBtn = document.getElementById('export-btn-main');
+    const filterCosto = document.getElementById('filter-costo');
+    const filterFecha = document.getElementById('filter-fecha');
+    const filterInspector = document.getElementById('filter-inspector');
+    const filterLote = document.getElementById('filter-lote');
+
+    // Funciones para manejo del menú
     menuToggle.addEventListener('click', function (e) {
         e.stopPropagation();
         dropdownMenu.classList.toggle('active');
@@ -25,26 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
     });
 
-    let allReports = [];
-    let uniqueInspectors = [];
-    let uniqueLotes = [];
-    let currentCurrency = 'USD';
-    let conversionRate = 1;
-    let currentFilters = {};
-    let selectedReportId = null; // Track selected report
-
-    // Elementos del DOM
-    const tableBody = document.querySelector('.table-body');
-    const summaryContent = document.querySelector('.summary-content');
-    const currencyUSD = document.getElementById('currency-usd');
-    const currencyMXN = document.getElementById('currency-mxn');
-    const exportBtn = document.getElementById('export-btn-main');
-    const filterCosto = document.getElementById('filter-costo');
-    const filterFecha = document.getElementById('filter-fecha');
-    const filterInspector = document.getElementById('filter-inspector');
-    const filterLote = document.getElementById('filter-lote');
-
-    // Actualizar texto del botón de exportar
+    /**
+     * Actualiza el texto y estado del botón de exportar.
+     * Habilita o deshabilita el botón según haya un reporte seleccionado.
+     */
     function updateExportButtonText() {
         if (selectedReportId) {
             exportBtn.innerHTML = `
@@ -59,15 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fas fa-download"></i>
             `;
             exportBtn.classList.remove('active');
-            exportBtn.disabled = true; // Disable the button when no report is selected
+            exportBtn.disabled = true; // Deshabilitar cuando no hay selección
         }
     }
 
-    // Cargar datos iniciales
+    // Inicialización: cargar datos y configurar estado inicial
     loadReports();
     loadConversionRate();
 
-    // Event Listeners
+    // Event Listeners para filtros y acciones de usuario
     filterCosto.addEventListener('change', applyFilters);
     filterFecha.addEventListener('change', applyFilters);
     filterInspector.addEventListener('change', applyFilters);
@@ -80,13 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('export-btn-main').addEventListener('click', handleExport);
     document.getElementById('export-btn-date').addEventListener('click', handleDateExport);
 
-    // Cargar reportes
+    /**
+     * Carga los reportes desde el backend y los muestra en la interfaz.
+     * También extrae datos para los filtros de inspectores y lotes.
+     */
     async function loadReports() {
         try {
             const userId = getUserId();
 
             if (!userId) {
-                window.location.href = '/login'; // Redirigir si no hay usuario
+                window.location.href = '/login'; // Redireccionar si no hay usuario autenticado
                 return;
             }
 
@@ -98,23 +120,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             allReports = await response.json();
             
-            // Extract unique inspectors and lotes for filters
+            // Extraer valores únicos para los filtros
             uniqueInspectors = [...new Set(allReports.map(report => report.inspector))].filter(Boolean);
             uniqueLotes = [...new Set(allReports.map(report => report.loteId))].filter(Boolean);
             
-            // Populate filter dropdowns
+            // Llenar los dropdowns de filtros
             populateFilterDropdowns();
             
             renderTable(allReports);
             updateSummary(allReports);
         } catch (error) {
             console.error('Error cargando reportes:', error);
-            // Mostrar mensaje de error en la UI
             tableBody.innerHTML = `<div class="error">${error.message}</div>`;
         }
     }
     
-    // Populate the filter dropdowns with data from the reports
+    /**
+     * Llena los dropdowns de filtros con datos de inspectores y lotes.
+     */
     function populateFilterDropdowns() {
         // Clear existing options (keep the first empty option)
         while (filterInspector.options.length > 1) {
@@ -142,7 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Aplicar filtros
+    /**
+     * Aplica filtros a la lista de reportes según las selecciones del usuario.
+     * Resetea la selección de reporte actual.
+     */
     function applyFilters() {
         // Clear selected report when filters change
         selectedReportId = null;
@@ -181,11 +207,15 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSummary(filtered);
     }
 
-    // Renderizar tabla
+    /**
+     * Renderiza la tabla de reportes con los datos proporcionados.
+     * 
+     * @param {Array} reports - Lista de reportes a mostrar
+     */
     function renderTable(reports) {
         tableBody.innerHTML = '';
-        selectedReportId = null; // Reset selected report when table is rerendered
-        updateExportButtonText(); // Update export button state
+        selectedReportId = null; // Resetear selección cuando la tabla se vuelve a renderizar
+        updateExportButtonText(); // Actualizar estado del botón de exportar
 
         if (reports.length === 0) {
             tableBody.innerHTML = '<div class="no-data">No se encontraron reportes que coincidan con los criterios de búsqueda.</div>';
@@ -235,7 +265,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Actualizar resumen
+    /**
+     * Actualiza la sección de resumen con la información apropiada.
+     * 
+     * @param {Object|Array} data - Un reporte individual o un array de reportes
+     */
     function updateSummary(data) {
         if (Array.isArray(data)) {
             const total = data.reduce((sum, r) => sum + r.costoTotal, 0);
@@ -245,6 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Genera un resumen general para múltiples reportes.
+     * 
+     * @param {Array} reports - Lista de reportes
+     * @param {number} total - Costo total de todos los reportes
+     * @returns {string} HTML para la sección de resumen
+     */
     function generateGeneralSummary(reports, total) {
         const average = reports.length > 0 ? total / reports.length : 0;
 
@@ -268,6 +309,12 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     }
 
+    /**
+     * Encuentra el lote con mayor costo en un conjunto de reportes.
+     * 
+     * @param {Array} reports - Lista de reportes
+     * @returns {string} ID del lote con mayor costo acumulado
+     */
     function getMostExpensiveLot(reports) {
         if (reports.length === 0)
             return 'N/A';
@@ -285,7 +332,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return maxLot || 'N/A';
     }
 
-    // Funciones de ayuda
+    /**
+     * Formatea un valor numérico como moneda según la configuración actual.
+     * 
+     * @param {number} amount - Monto a formatear
+     * @returns {string} Valor formateado como moneda
+     */
     function formatCurrency(amount) {
         if (isNaN(amount))
             return "$0.00";
@@ -298,7 +350,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(amount);
     }
 
-    // Fix currency conversion to match the working implementation
+    /**
+     * Carga la tasa de conversión de moneda desde el servicio correspondiente.
+     */
     async function loadConversionRate() {
         try {
             if (currentCurrency === 'MXN') {
@@ -322,6 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Maneja el cambio de moneda seleccionada por el usuario.
+     * 
+     * @param {Event} e - Evento de clic
+     */
     function handleCurrencyChange(e) {
         currentCurrency = e.target.id === 'currency-usd' ? 'USD' : 'MXN';
         currencyUSD.classList.toggle('active', currentCurrency === 'USD');
@@ -329,6 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadConversionRate().then(applyFilters);
     }
 
+    /**
+     * Maneja la exportación del reporte seleccionado o reportes filtrados.
+     */
     async function handleExport() {
         try {
             const token = localStorage.getItem('authToken');
@@ -338,12 +400,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Check if a specific report is selected
+            // Verificar si hay un reporte seleccionado
             if (selectedReportId) {
-                // Export just the selected report
-                console.log(`Exporting single report ID: ${selectedReportId}`);
+                // Exportar solo el reporte seleccionado
+                console.log(`Exportando reporte ID: ${selectedReportId}`);
                 
-                // Show loading indicator
+                // Mostrar indicador de carga
                 exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
                 exportBtn.disabled = true;
                 
@@ -354,28 +416,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.append('idUsuario', getUserId(token));
                 
                 const url = `/api/v1/reportes/exportar?${params.toString()}`;
-                console.log("URL for exporting single report:", url);
+                console.log("URL para exportación de reporte individual:", url);
                 
-                // Use window.open to open in new tab to see any errors
                 window.open(url, '_blank');
                 
-                // Reset button after a delay
+                // Restablecer botón después de un retraso
                 setTimeout(() => {
                     updateExportButtonText();
                 }, 1500);
             } else {
-                // Display message that a report must be selected
+                // Mostrar mensaje de que se debe seleccionar un reporte
                 alert('Por favor, seleccione un reporte para exportar');
             }
         } catch (error) {
-            console.error('Error exporting:', error);
-            alert('Error generating report: ' + error.message);
+            console.error('Error al exportar:', error);
+            alert('Error al generar reporte: ' + error.message);
             
-            // Reset button
+            // Restablecer botón
             updateExportButtonText();
         }
     }
 
+    /**
+     * Maneja la exportación de reportes por rango de fechas.
+     * Este tipo de exportación incluye reportes de todos los usuarios.
+     */
     function handleDateExport() {
         try {
             const token = localStorage.getItem('authToken');
@@ -428,7 +493,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Function to get user ID from token or localStorage
+    /**
+     * Obtiene el ID de usuario del token JWT o localStorage.
+     * 
+     * @param {string} token - Token JWT opcional (si no se proporciona, se obtiene del localStorage)
+     * @returns {number|null} ID del usuario o null si no se puede determinar
+     */
     function getUserId(token = localStorage.getItem('authToken')) {
         try {
             if (!token) return null;
@@ -456,6 +526,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Filtra reportes por fecha según el tipo de filtro seleccionado.
+     * 
+     * @param {Array} reports - Lista de reportes a filtrar
+     * @param {string} filterType - Tipo de filtro (hoy, semana, mes)
+     * @returns {Array} Reportes filtrados por fecha
+     */
     function filterByDate(reports, filterType) {
         const today = new Date();
 
@@ -478,6 +555,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /**
+     * Genera HTML para mostrar el resumen de un reporte individual.
+     * 
+     * @param {Object} report - Reporte a mostrar
+     * @returns {string} HTML para la vista detallada del reporte
+     */
     function generateReportSummary(report) {
         const fechaFormateada = new Date(report.fecha).toLocaleDateString('es-MX', {
             weekday: 'long',

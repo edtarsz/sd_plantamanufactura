@@ -17,6 +17,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Entidad que representa una pieza dentro del sistema.
+ *
+ * Esta clase se mapea a la tabla "pieza" en la base de datos y contiene la
+ * información básica sobre una pieza, como su identificador, nombre y costo. Se
+ * utiliza en operaciones de persistencia con JPA.
+ *
+ * Los campos están anotados con JPA para definir sus restricciones y
+ * correspondencia con columnas de la base de datos.
+ *
+ * También se utilizan anotaciones de Lombok para generar automáticamente
+ * métodos como getters, setters, constructores y el patrón builder.
+ *
+ * Esta clase es usada por los servicios, controladores y repositorios que
+ * manejan la lógica y las operaciones relacionadas con piezas.
  *
  * @author Ramos
  */
@@ -29,15 +43,24 @@ import lombok.Setter;
 @Table(name = "pieza")
 public class Pieza {
 
+    /**
+     * Identificador único de la pieza. Se genera automáticamente al insertar
+     * una nueva pieza.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idPieza")
     private Long idPieza;
 
+    /**
+     * Nombre de la pieza. Es obligatorio y debe ser único dentro del sistema.
+     */
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
+    /**
+     * Costo de la pieza. Es obligatorio y debe ser único dentro del sistema.
+     */
     @Column(name = "costo", nullable = false, unique = true)
     private Float costo;
-
 }

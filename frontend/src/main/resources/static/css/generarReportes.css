@@ -1,4 +1,15 @@
-/* Estilos generales */
+/**
+ * Estilos para la pantalla de generación de reportes
+ * 
+ * Este archivo contiene los estilos necesarios para la visualización
+ * y funcionalidad de la pantalla de reportes, incluyendo la tabla de
+ * reportes, los filtros, los resúmenes y las opciones de exportación.
+ * 
+ * @author Ramos
+ * @version 1.0
+ */
+
+/* Estilos generales y reseteo */
 * {
     margin: 0;
     padding: 0;

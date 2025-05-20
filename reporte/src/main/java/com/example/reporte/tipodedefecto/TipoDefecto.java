@@ -4,19 +4,16 @@
  */
 package com.example.reporte.tipodedefecto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 /**
+ * Entidad JPA que representa un tipo de defecto en la base de datos.
+ *
+ * Esta clase se mapea a la tabla "tipo_defecto"
+ *
+ * Se utiliza Lombok para reducir la verbosidad del código (getters, setters,
+ * etc.).
  *
  * @author Ramos
  */
@@ -29,11 +26,18 @@ import lombok.Setter;
 @Table(name = "tipo_defecto")
 public class TipoDefecto {
 
+    /**
+     * Clave primaria del tipo de defecto. Se genera automáticamente con
+     * estrategia de identidad.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idTipoDefecto")
     private Long idTipoDefecto;
 
+    /**
+     * Nombre del tipo de defecto. Campo obligatorio y único.
+     */
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 

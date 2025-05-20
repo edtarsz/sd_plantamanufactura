@@ -1,6 +1,12 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Servicio para la gestión de reportes de defectos en la planta de manufactura.
+ * 
+ * Esta clase proporciona las funcionalidades principales para la creación,
+ * consulta, actualización y exportación de reportes de defectos. También maneja la
+ * generación de documentos PDF para la visualización de reportes.
+ * 
+ * @author Ramos
+ * @version 1.0
  */
 package com.example.reporte;
 
@@ -44,8 +50,12 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
- *
- * @author Ramos
+ * Servicio principal para la gestión de reportes de defectos.
+ * 
+ * Esta clase se encarga de todas las operaciones relacionadas con reportes,
+ * incluyendo la creación de nuevos reportes, la consulta de reportes existentes,
+ * el filtrado por diferentes criterios, y la exportación en diversos formatos.
+ * También maneja la conversión de moneda para los reportes.
  */
 @Service
 @AllArgsConstructor
@@ -60,18 +70,42 @@ public class ReporteServicio {
     @Autowired
     private RestTemplate restTemplate;
 
+    /**
+     * Obtiene todos los reportes disponibles.
+     * 
+     * @return Lista de todos los reportes en el sistema
+     */
     public List<Reporte> getReportes() {
         return reporteRepository.findAll();
     }
 
+    /**
+     * Busca un reporte específico por su ID.
+     * 
+     * @param id El ID del reporte a buscar
+     * @return Un Optional que contiene el reporte si existe, o vacío si no se encuentra
+     */
     public Optional<Reporte> getReporte(Long id) {
         return reporteRepository.findById(id);
     }
 
+    /**
+     * Busca todos los reportes asociados a un usuario específico.
+     * 
+     * @param idUsuario El ID del usuario cuyos reportes se desean consultar
+     * @return Lista de reportes asociados al usuario
+     */
     public List<Reporte> findAllByUsuarioId(Long idUsuario) {
         return reporteRepository.findAllByUsuarioId(idUsuario);
     }
 
+    /**
+     * Guarda o actualiza un reporte, calculando automáticamente los costos
+     * asociados a cada defecto.
+     * 
+     * @param reporte El reporte a guardar o actualizar
+     * @return El reporte guardado con todos los cálculos actualizados
+     */
     public Reporte saveOrUpdate(Reporte reporte) {
         double costoTotal = 0;
 
@@ -94,14 +128,31 @@ public class ReporteServicio {
         return reporteRepository.save(reporte);
     }
 
+    /**
+     * Obtiene todos los reportes incluyendo sus detalles de defectos.
+     * 
+     * @return Lista de reportes con sus defectos asociados
+     */
     public List<Reporte> getTodosReportesConDetalles() {
         return reporteRepository.findAllWithDefectos();
     }
 
+    /**
+     * Elimina un reporte por su ID.
+     * 
+     * @param id El ID del reporte a eliminar
+     */
     public void delete(Long id) {
         reporteRepository.deleteById(id);
     }
 
+    /**
+     * Filtra reportes según criterios específicos y un usuario determinado.
+     * 
+     * @param filtros Mapa de criterios de filtrado (fecha, inspector, lote, etc.)
+     * @param idUsuario ID del usuario para filtrar reportes
+     * @return Lista de reportes filtrados
+     */
     public List<Reporte> filtrarReportes(Map<String, String> filtros, Long idUsuario) {
         // Crear una especificación inicial sin filtro de usuario para depurar
         Specification<Reporte> spec = Specification.where(null);
@@ -160,6 +211,14 @@ public class ReporteServicio {
         };
     }
 
+    /**
+     * Exporta reportes filtrados a un formato específico.
+     * 
+     * @param params Parámetros de filtrado y configuración de exportación
+     * @param currency Moneda en la que se mostrarán los valores monetarios
+     * @param outputStream Stream de salida donde se escribirá el reporte
+     * @throws IllegalArgumentException Si los parámetros son inválidos
+     */
     public void exportarReportes(Map<String, String> params, String currency, OutputStream outputStream) {
         // Validar parámetro idUsuario primero
         String idUsuarioStr = params.get("idUsuario");
@@ -185,6 +244,14 @@ public class ReporteServicio {
         }
     }
 
+    /**
+     * Genera un reporte en formato PDF a partir de una lista de reportes.
+     * 
+     * @param reportes Lista de reportes a incluir en el PDF
+     * @param currency Moneda en la que se mostrarán los valores
+     * @param outputStream Stream de salida para el documento PDF
+     * @throws RuntimeException Si ocurre un error durante la generación del PDF
+     */
     public void generatePdfReport(List<Reporte> reportes, String currency, OutputStream outputStream) {
         Document document = new Document(PageSize.A4.rotate()); // Formato horizontal
         try {
@@ -479,6 +546,13 @@ public class ReporteServicio {
         return cell;
     }
 
+    /**
+     * Convierte un valor monetario de USD a otra moneda.
+     * 
+     * @param amount Monto en USD a convertir
+     * @param targetCurrency Moneda objetivo para la conversión
+     * @return El monto convertido a la moneda objetivo
+     */
     private double convertCurrency(Double amount, String targetCurrency) {
         if (amount == null) {
             return 0.0;
@@ -513,6 +587,13 @@ public class ReporteServicio {
         }
     }
 
+    /**
+     * Utiliza tasas de cambio predefinidas cuando el servicio de conversión no está disponible.
+     * 
+     * @param amount Monto a convertir
+     * @param targetCurrency Moneda objetivo para la conversión
+     * @return El monto convertido usando tasas predefinidas
+     */
     private double useFallbackRate(Double amount, String targetCurrency) {
         // Valores por defecto para diferentes monedas
         double rate = switch (targetCurrency.toUpperCase()) {
@@ -533,10 +614,24 @@ public class ReporteServicio {
         return amount * rate;
     }
 
+    /**
+     * Obtiene reportes con sus detalles para un usuario específico.
+     * 
+     * @param usuarioId ID del usuario
+     * @return Lista de reportes con detalles de defectos
+     */
     public List<Reporte> getReportesConDetalles(Long usuarioId) {
         return reporteRepository.findByUsuarioIdWithDefectos(usuarioId);
     }
 
+    /**
+     * Consulta información del usuario desde el microservicio de usuarios.
+     * 
+     * @param idUsuario ID del usuario a consultar
+     * @return Datos del usuario obtenidos del microservicio
+     * @throws UsuarioNoEncontradoException Si el usuario no existe
+     * @throws ServicioNoDisponibleException Si el servicio de usuarios no está disponible
+     */
     public UsuarioDTO obtenerUsuarioDesdeMicroservicio(Long idUsuario) {
         String url = "http://usuarios/api/v1/usuarios/{id}";
 
@@ -561,7 +656,12 @@ public class ReporteServicio {
     }
 
     /**
-     * Exporta un único reporte por su ID
+     * Exporta un único reporte por su ID.
+     * 
+     * @param reporteId ID del reporte a exportar
+     * @param currency Moneda en la que se mostrarán los valores
+     * @param outputStream Stream de salida para el documento
+     * @throws IllegalArgumentException Si el reporte no existe
      */
     public void exportarReportePorId(Long reporteId, String currency, OutputStream outputStream) {
         Optional<Reporte> reporteOpt = reporteRepository.findById(reporteId);
@@ -578,7 +678,13 @@ public class ReporteServicio {
     }
 
     /**
-     * Exporta reportes basado en un rango de fechas sin filtro de usuario
+     * Exporta reportes basado en un rango de fechas sin filtro de usuario.
+     * 
+     * @param fechaInicio Fecha inicial del rango en formato yyyy-MM-dd
+     * @param fechaFin Fecha final del rango en formato yyyy-MM-dd
+     * @param currency Moneda en la que se mostrarán los valores
+     * @param outputStream Stream de salida para el documento
+     * @throws RuntimeException Si ocurre un error durante la exportación
      */
     public void exportarReportesPorFechas(String fechaInicio, String fechaFin, String currency, OutputStream outputStream) {
         try {
@@ -609,7 +715,8 @@ public class ReporteServicio {
     }
 
     /**
-     * Obtiene una lista de todos los inspectores únicos de los reportes
+     * Obtiene una lista de todos los inspectores únicos de los reportes.
+     * 
      * @return Lista de nombres de inspectores
      */
     public List<String> getInspectoresUnicos() {
@@ -617,7 +724,8 @@ public class ReporteServicio {
     }
     
     /**
-     * Obtiene una lista de todos los lotes únicos de los reportes
+     * Obtiene una lista de todos los lotes únicos de los reportes.
+     * 
      * @return Lista de IDs de lote
      */
     public List<String> getLotesUnicos() {

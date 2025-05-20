@@ -10,6 +10,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Clase DTO (Data Transfer Object) que representa la información de un defecto
+ * para transferir datos entre capas de la aplicación. Contiene detalles como el
+ * tipo de defecto, cantidad de piezas afectadas, costo asociado y detalles
+ * adicionales.
  *
  * @author Ramos
  */
@@ -19,9 +23,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class DefectoDTO {
 
-    private String tipoDefecto;
-    private Integer cantidad_piezas;
-    private Double costo;
-    private String detalles;
+    private String tipoDefecto;       // Nombre o tipo del defecto
+    private Integer cantidad_piezas;  // Número de piezas afectadas
+    private Double costo;             // Costo total asociado al defecto
+    private String detalles;          // Información adicional o descripción del defecto
 
 }

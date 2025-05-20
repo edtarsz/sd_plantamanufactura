@@ -8,6 +8,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Repositorio JPA para la entidad Pieza.
+ *
+ * Esta interfaz proporciona métodos para realizar operaciones CRUD sobre la
+ * tabla correspondiente a la entidad Pieza en la base de datos.
+ *
+ * También se pueden declarar métodos personalizados si se requiere lógica
+ * adicional de consulta.
+ *
+ * Anotación @Repository permite a Spring detectar esta interfaz como un
+ * componente de acceso a datos.
  *
  * @author Ramos
  */
