@@ -52,12 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fas fa-download"></i>
             `;
             exportBtn.classList.add('active');
+            exportBtn.disabled = false;
         } else {
             exportBtn.innerHTML = `
-                Exportar
+                Seleccione un reporte
                 <i class="fas fa-download"></i>
             `;
             exportBtn.classList.remove('active');
+            exportBtn.disabled = true; // Disable the button when no report is selected
         }
     }
 
@@ -182,6 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Renderizar tabla
     function renderTable(reports) {
         tableBody.innerHTML = '';
+        selectedReportId = null; // Reset selected report when table is rerendered
+        updateExportButtonText(); // Update export button state
 
         if (reports.length === 0) {
             tableBody.innerHTML = '<div class="no-data">No se encontraron reportes que coincidan con los criterios de búsqueda.</div>';
@@ -334,10 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Get user ID from token
-            const userId = getUserId(token);
-            const format = document.getElementById('export-format-select').value;
-            
             // Check if a specific report is selected
             if (selectedReportId) {
                 // Export just the selected report
@@ -348,10 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 exportBtn.disabled = true;
                 
                 const params = new URLSearchParams();
-                params.append('format', format);
+                params.append('format', document.getElementById('export-format-select').value || 'pdf');
                 params.append('currency', currentCurrency);
-                params.append('reporteId', selectedReportId); // Add the selected report ID
-                params.append('idUsuario', userId); // Required by the backend
+                params.append('reporteId', selectedReportId);
+                params.append('idUsuario', getUserId(token));
                 
                 const url = `/api/v1/reportes/exportar?${params.toString()}`;
                 console.log("URL for exporting single report:", url);
@@ -362,43 +362,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Reset button after a delay
                 setTimeout(() => {
                     updateExportButtonText();
-                    exportBtn.disabled = false;
                 }, 1500);
-                
-                return;
+            } else {
+                // Display message that a report must be selected
+                alert('Por favor, seleccione un reporte para exportar');
             }
-            
-            // If no report is selected, export based on filters (original behavior)
-            const params = new URLSearchParams();
-            params.append('format', format);
-            params.append('currency', currentCurrency);
-            params.append('idUsuario', userId);
-
-            // Add filters if present
-            if (currentFilters.costSort === 'asc')
-                params.append('costSort', 'loteA');  // Backend expects 'loteA' for ascending
-            else if (currentFilters.costSort === 'desc')
-                params.append('costSort', 'loteB');  // Backend expects 'loteB' for descending
-                
-            if (currentFilters.dateFilter)
-                params.append('dateFilter', currentFilters.dateFilter);
-            if (currentFilters.inspector)
-                params.append('inspector', currentFilters.inspector);
-            if (currentFilters.lote)
-                params.append('lote', currentFilters.lote);
-
-            // Redirect to download
-            const url = `/api/v1/reportes/exportar?${params.toString()}`;
-            console.log("URL for exporting filtered reports:", url);
-
-            window.open(url, '_blank');
         } catch (error) {
             console.error('Error exporting:', error);
             alert('Error generating report: ' + error.message);
             
             // Reset button
             updateExportButtonText();
-            exportBtn.disabled = false;
         }
     }
 
