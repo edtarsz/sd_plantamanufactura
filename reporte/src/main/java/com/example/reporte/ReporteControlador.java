@@ -141,7 +141,7 @@ public class ReporteControlador {
             @RequestParam(defaultValue = "pdf") String format,
             @RequestParam(required = false) Long idUsuario,
             @RequestParam(required = false) Long reporteId,
-            @RequestParam(required = false) String allUsers, // New parameter to include all users
+            @RequestParam(required = false) String allUsers,
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
             HttpServletResponse response) throws IOException {
@@ -166,19 +166,16 @@ public class ReporteControlador {
             response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
             response.setHeader("Cache-Control", "must-revalidate, post-check=0, pre-check=0");
 
-            // Check if we need to export a single report by ID
             if (reporteId != null) {
                 reporteServicio.exportarReportePorId(reporteId, currency, response.getOutputStream());
                 return;
             }
 
-            // Check if we're exporting by date range for all users
             if (fechaInicio != null && fechaFin != null && "true".equals(allUsers)) {
                 reporteServicio.exportarReportesPorFechas(fechaInicio, fechaFin, currency, response.getOutputStream());
                 return;
             }
 
-            // If no specific report ID or date range for all users, proceed with filtered export
             Map<String, String> params = new HashMap<>();
             params.put("costSort", costSort != null ? costSort : "");
             params.put("dateFilter", dateFilter != null ? dateFilter : "");
@@ -186,23 +183,16 @@ public class ReporteControlador {
             params.put("lote", lote != null ? lote : "");
             params.put("format", format);
 
-            // For date range filtering with user ID
             if (fechaInicio != null && fechaFin != null) {
                 params.put("fechaInicio", fechaInicio);
                 params.put("fechaFin", fechaFin);
             }
 
-            // Use default user ID if not provided
-            if (idUsuario == null) {
-                idUsuario = 1L; // Default user ID for testing
-            }
             params.put("idUsuario", idUsuario.toString());
 
-            // Generate the filtered report
             reporteServicio.exportarReportes(params, currency, response.getOutputStream());
 
         } catch (IOException e) {
-            // Send error response
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setContentType("text/html");
             response.getWriter().write("<html><body><h2>Error al generar el reporte</h2>"
