@@ -17,7 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Controlador REST que gestiona las operaciones CRUD para los usuarios.
  *
+ * <p>Expone endpoints para listar, consultar, guardar y eliminar usuarios.
+ * También permite consultar usuarios junto con sus reportes o por su username.</p>
+ *
+ * <p>Base URL: <code>/api/v1/usuarios</code></p>
+ * 
  * @author Ramos
  */
 @RestController
@@ -29,38 +35,73 @@ public class UsuarioControlador {
     @Autowired
     UsuarioRepository usuarioRepositorio;
 
+    /**
+     * Constructor con inyección del servicio de usuario.
+     *
+     * @param usuarioServicio componente que gestiona la lógica del negocio
+     */
     public UsuarioControlador(UsuarioServicio usuarioServicio) {
         this.usuarioServicio = usuarioServicio;
     }
 
-    // GET:: /api/v1/usuarios
+    /**
+     * Obtiene la lista de todos los usuarios.
+     *
+     * @return lista de usuarios
+     */
     @GetMapping
     public List<Usuario> getAll() {
         return usuarioServicio.getUsuarios();
     }
 
-    // GET:: /api/v1/usuarios/{idUsuario}
+    /**
+     * Busca un usuario por su ID.
+     *
+     * @param idUsuario identificador del usuario
+     * @return objeto {@link Usuario} si existe, o vacío si no
+     */
     @GetMapping("/{idUsuario}")
     public Optional<Usuario> getByID(@PathVariable("idUsuario") Long idUsuario) {
         return usuarioServicio.getUsuario(idUsuario);
     }
 
+    /**
+     * Guarda o actualiza un usuario.
+     *
+     * @param usuario objeto {@link Usuario} a guardar
+     */
     @PostMapping
     public void saveOrUpdate(@RequestBody Usuario usuario) {
         usuarioServicio.saveOrUpdate(usuario);
     }
 
+    /**
+     * Elimina un usuario por su ID.
+     *
+     * @param idUsuario identificador del usuario a eliminar
+     */
     @DeleteMapping("/{idUsuario}")
     public void delete(@PathVariable("idUsuario") Long idUsuario) {
         usuarioServicio.delete(idUsuario);
     }
 
-    // GET:: /api/v1/usuarios/con-reportes/{idUsuario}
+    /**
+     * Obtiene un usuario con su lista de reportes asociados.
+     *
+     * @param idUsuario identificador del usuario
+     * @return objeto {@link FullUsuarioResponse}
+     */
     @GetMapping("/con-reportes/{idUsuario}")
     public FullUsuarioResponse getAll(@PathVariable("idUsuario") Long idUsuario) {
         return usuarioServicio.findAllReportesByUsuario(idUsuario);
     }
 
+    /**
+     * Busca un usuario por su nombre de usuario.
+     *
+     * @param username nombre de usuario
+     * @return objeto {@link UsuarioResponse} si se encuentra, o 404 si no
+     */
     @GetMapping("/username/{username}")
     public ResponseEntity<UsuarioResponse> getByUsername(@PathVariable String username) {
         Optional<Usuario> usuario = usuarioRepositorio.findByUsername(username);

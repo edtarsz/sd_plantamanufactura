@@ -10,7 +10,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * DTO que representa un reporte individual.
  *
+ * <p>Contiene únicamente el costo total del reporte, aunque puede ampliarse
+ * en el futuro con más información.</p>
+ * 
+ * <p>Utiliza Lombok para generar constructor, getter y setter.</p>
+ * 
  * @author Ramos
  */
 @Getter
@@ -19,5 +25,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Reporte {
 
+    /**
+     * Costo total del reporte.
+     */
     private Float costoTotal;
 }

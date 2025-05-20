@@ -12,7 +12,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * DTO que representa la respuesta extendida de un usuario, incluyendo sus reportes.
  *
+ * <p>Se utiliza para retornar información compuesta del usuario y su historial
+ * de reportes asociados.</p>
+ *
+ * <p>Contiene el nombre completo, nombre de usuario y una lista de reportes.</p>
+ * 
+ * <p>Utiliza anotaciones de Lombok para generar constructores, getters, setters y builder.</p>
+ * 
  * @author Ramos
  */
 @Getter
@@ -25,5 +33,8 @@ public class FullUsuarioResponse {
     private String fullName;
     private String username;
 
-    List<Reporte> reportes;
+    /**
+     * Lista de reportes asociados al usuario.
+     */
+    private List<Reporte> reportes;
 }

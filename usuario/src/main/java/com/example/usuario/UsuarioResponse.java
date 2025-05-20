@@ -10,7 +10,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * DTO simple que representa una respuesta básica de usuario.
  *
+ * <p>Se utiliza para exponer solo ciertos campos del usuario, como su ID,
+ * nombre de usuario y contraseña (aunque incluir contraseñas no es recomendado en producción).</p>
+ *
+ * <p>Ideal para autenticación o búsqueda específica por username.</p>
+ * 
  * @author Ramos
  */
 @Getter

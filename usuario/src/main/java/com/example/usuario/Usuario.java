@@ -18,7 +18,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Entidad JPA que representa un usuario en la base de datos.
  *
+ * <p>Contiene información básica como nombre completo, nombre de usuario y contraseña.</p>
+ *
+ * <p>Está mapeada a la tabla <code>usuario</code> y utiliza estrategias de generación automática para su ID.</p>
+ * 
+ * <p>Incluye anotaciones de Lombok para facilitar el acceso y construcción del objeto.</p>
+ * 
  * @author Ramos
  */
 @Getter
