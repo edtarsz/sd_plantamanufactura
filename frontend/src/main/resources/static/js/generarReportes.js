@@ -29,13 +29,31 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCurrency = 'USD';
     let conversionRate = 1;
     let currentFilters = {};
-    let selectedReportId = null;
+    let selectedReportId = null; // Track selected report
 
     // Elementos del DOM
     const tableBody = document.querySelector('.table-body');
     const summaryContent = document.querySelector('.summary-content');
     const currencyUSD = document.getElementById('currency-usd');
     const currencyMXN = document.getElementById('currency-mxn');
+    const exportBtn = document.getElementById('export-btn-main');
+
+    // Actualizar texto del botón de exportar
+    function updateExportButtonText() {
+        if (selectedReportId) {
+            exportBtn.innerHTML = `
+                Exportar Reporte #${selectedReportId}
+                <i class="fas fa-download"></i>
+            `;
+            exportBtn.classList.add('active');
+        } else {
+            exportBtn.innerHTML = `
+                Exportar
+                <i class="fas fa-download"></i>
+            `;
+            exportBtn.classList.remove('active');
+        }
+    }
 
     // Cargar datos iniciales
     loadReports();
@@ -128,18 +146,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTable(reports) {
         tableBody.innerHTML = '';
 
+        if (reports.length === 0) {
+            tableBody.innerHTML = '<div class="no-data">No se encontraron reportes que coincidan con los criterios de búsqueda.</div>';
+            return;
+        }
+
         reports.forEach(report => {
             const row = document.createElement('div');
             row.className = `table-row ${selectedReportId === report.idReporte ? 'selected' : ''}`;
+            row.dataset.reportId = report.idReporte; // Store report ID in dataset
             row.innerHTML = `
             <div class="td id" data-label="ID">${report.idReporte}</div>
-            <div class="td costo" data-label="COSTO TOTAL">${report.costoTotal}</div>
+            <div class="td costo" data-label="COSTO TOTAL">${formatCurrency(report.costoTotal * conversionRate)}</div>
             <div class="td inspector" data-label="INSPECTOR">${report.inspector}</div>
             <div class="td lote" data-label="LOTE">${report.loteId}</div>
         `;
 
             row.addEventListener('click', async () => {
                 try {
+                    // Remove selected class from all rows
+                    document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+                    
+                    // Add selected class to clicked row
+                    row.classList.add('selected');
+                    
+                    // Store selected report ID
+                    selectedReportId = report.idReporte;
+                    console.log("Selected report ID:", selectedReportId);
+                    
+                    // Update export button text
+                    updateExportButtonText();
+                    
                     const response = await fetch(`/api/v1/reportes/${report.idReporte}`);
                     if (!response.ok)
                         throw new Error('Error cargando detalle');
@@ -220,11 +257,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(amount);
     }
 
+    // Fix currency conversion to match the working implementation
     async function loadConversionRate() {
-        if (currentCurrency === 'MXN') {
-            const response = await fetch('/api/v1/conversion/usd-a-mxn');
-            const data = await response.json();
-            conversionRate = data.tasa;
+        try {
+            if (currentCurrency === 'MXN') {
+                // Use the same endpoint that works in registroDefectos.js
+                const response = await fetch(`/api/v1/conversion/rate?from=USD&to=MXN`);
+                const data = await response.json();
+                
+                if (data && data.exchangeRate) {
+                    conversionRate = parseFloat(data.exchangeRate);
+                    console.log("Conversion rate loaded:", conversionRate);
+                } else {
+                    console.warn("Exchange rate not found in response, using default");
+                    conversionRate = 17.05; // Default fallback rate
+                }
+            } else {
+                conversionRate = 1; // For USD
+            }
+        } catch (error) {
+            console.error("Error loading conversion rate:", error);
+            conversionRate = currentCurrency === 'MXN' ? 17.05 : 1; // Fallback rate
         }
     }
 
@@ -236,14 +289,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleExport() {
-        const format = document.getElementById('export-format-select').value;
-        const params = new URLSearchParams({
-            ...currentFilters,
-            currency: currentCurrency,
-            format
-        });
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Usuario no autenticado');
+                window.location.href = '/login';
+                return;
+            }
 
-        window.location.href = `/api/v1/reportes/exportar?${params}`;
+            // Get user ID from token
+            const userId = getUserId(token);
+            const format = document.getElementById('export-format-select').value;
+            
+            // Check if a specific report is selected
+            if (selectedReportId) {
+                // Export just the selected report
+                console.log(`Exporting single report ID: ${selectedReportId}`);
+                
+                // Show loading indicator
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
+                exportBtn.disabled = true;
+                
+                const params = new URLSearchParams();
+                params.append('format', format);
+                params.append('currency', currentCurrency);
+                params.append('reporteId', selectedReportId); // Add the selected report ID
+                
+                const url = `/api/v1/reportes/exportar?${params.toString()}`;
+                console.log("URL for exporting single report:", url);
+                
+                // Use window.open to open in new tab to see any errors
+                window.open(url, '_blank');
+                
+                // Reset button after a delay
+                setTimeout(() => {
+                    updateExportButtonText();
+                    exportBtn.disabled = false;
+                }, 1500);
+                
+                return;
+            }
+            
+            // If no report is selected, export based on filters (original behavior)
+            const params = new URLSearchParams();
+            params.append('format', format);
+            params.append('currency', currentCurrency);
+            params.append('idUsuario', userId);
+
+            // Add filters if present
+            if (currentFilters.costSort)
+                params.append('costSort', currentFilters.costSort);
+            if (currentFilters.dateFilter)
+                params.append('dateFilter', currentFilters.dateFilter);
+            if (currentFilters.inspector)
+                params.append('inspector', currentFilters.inspector);
+            if (currentFilters.lote)
+                params.append('lote', currentFilters.lote);
+
+            // Redirect to download
+            const url = `/api/v1/reportes/exportar?${params.toString()}`;
+            console.log("URL for exporting filtered reports:", url);
+
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Error exporting:', error);
+            alert('Error generating report: ' + error.message);
+            
+            // Reset button
+            updateExportButtonText();
+            exportBtn.disabled = false;
+        }
     }
 
     function handleDateExport() {
@@ -258,26 +373,29 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = `/api/v1/reportes/exportar?fechaInicio=${start}&fechaFin=${end}&currency=${currentCurrency}`;
     }
 
-    function getUserId() {
-        const token = localStorage.getItem('authToken');
-
-        if (!token) {
-            window.location.href = '/login';
-            return null;
-        }
-
+    // Function to get user ID from token or localStorage
+    function getUserId(token) {
         try {
-            // Decodificar el payload del JWT
+            // Try to get from token first
             const payload = JSON.parse(atob(token.split('.')[1]));
-
-            // Obtener el userId del claim
-            return payload.userId; // Esto coincide con el claim "userId" del Java
-
+            console.log("Token payload:", payload);
+            
+            if (payload && payload.userId) {
+                return payload.userId;
+            }
+            
+            // Fallback: Try to get from localStorage
+            const storedUserId = localStorage.getItem('userId');
+            if (storedUserId) {
+                return parseInt(storedUserId, 10);
+            }
+            
+            // If all fails, return default
+            console.warn("Could not determine user ID, using default: 1");
+            return 1;
         } catch (error) {
-            console.error('Error decodificando token:', error);
-            localStorage.removeItem('authToken');
-            window.location.href = '/login';
-            return null;
+            console.error('Error getting userId:', error);
+            return 1; // Default fallback
         }
     }
 
