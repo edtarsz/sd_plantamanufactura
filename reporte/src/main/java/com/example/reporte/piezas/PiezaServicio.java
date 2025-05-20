@@ -18,8 +18,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class PiezaServicio {
 
-    @Autowired
-    PiezaRepository piezaRepository;
+    private final PiezaRepository piezaRepository;
 
     public List<Pieza> getPiezas() {
         return piezaRepository.findAll();

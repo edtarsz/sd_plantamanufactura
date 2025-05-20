@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api/v1/defectos")
 public class DefectoControlador {
 
-    @Autowired
     private final DefectoServicio defectoServicio;
 
     public DefectoControlador(DefectoServicio defectoServicio) {

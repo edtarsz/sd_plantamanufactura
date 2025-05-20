@@ -20,14 +20,9 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TipoDefectoServicio {
 
-    @Autowired
-    private TipoDefectoRepository tipoDefectoRepositorio;
-
-    @Autowired
-    private DefectoRepository defectoRepositorio;
-
-    @Autowired
-    TipoDefectoRepository tipoDefectoRepository;
+    private final TipoDefectoRepository tipoDefectoRepositorio;
+    private final DefectoRepository defectoRepositorio;
+    private final TipoDefectoRepository tipoDefectoRepository;
 
     public List<TipoDefecto> getTipoDefectos() {
         return tipoDefectoRepository.findAll();

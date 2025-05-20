@@ -140,16 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function loadReportDetails(reportId) {
-        try {
-            const response = await fetch(`/api/v1/reportes/detalle/${reportId}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Error cargando detalles:', error);
-            return null;
-        }
-    }
-
     // Aplicar filtros
     function applyFilters() {
         // Clear selected report when filters change
