@@ -4,28 +4,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const menuToggle = document.querySelector('.menu-toggle');
     const dropdownMenu = document.querySelector('.dropdown-menu');
 
-    // Toggle del menú
-    menuToggle.addEventListener('click', function (e) {
+    menuToggle.addEventListener('click', e => {
         e.stopPropagation();
         dropdownMenu.classList.toggle('active');
     });
 
-    // Cerrar menú al hacer click fuera
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', e => {
         if (!menuToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
             dropdownMenu.classList.remove('active');
         }
     });
 
-    // Cerrar menú al hacer scroll
-    window.addEventListener('scroll', function () {
-        dropdownMenu.classList.remove('active');
-    });
-
-    // Prevenir cierre al hacer click dentro del menú
-    dropdownMenu.addEventListener('click', function (e) {
-        e.stopPropagation();
-    });
+    window.addEventListener('scroll', () => dropdownMenu.classList.remove('active'));
+    dropdownMenu.addEventListener('click', e => e.stopPropagation());
 
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -33,41 +24,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Variables globales
-    let piezasList = [];
-    let tiposDefectoList = [];
-    let tasaCambioMXN = 1;
-    let monedaBloqueada = false;
+    let piezasList = [], tiposDefectoList = [], tasaCambioMXN = 1, monedaBloqueada = false;
 
-    let currentReport = {
-        loteId: null,
-        inspector: obtenerUsername(token),
-        moneda: "USD",
-        defectos: [],
-        idUsuario: obtenerUsuarioId(token),
-        costoTotalUSD: 0,
-        costoTotalMostrar: 0
-    };
+    let currentReport = crearReporteInicial(token);
 
-    // Elementos UI
     const quantityInput = document.getElementById('cantidad');
     const currencyBtns = document.querySelectorAll('.currency-btn');
     const piezaSelect = document.getElementById('piezaSelect');
     const defectosContainer = document.getElementById('defectosContainer');
     const defectosResumen = document.getElementById('defectosResumen');
 
-    // Cargar datos iniciales
     await cargarPiezas();
     await cargarTiposDefecto();
 
-    currencyBtns.forEach(btn => {
-        if (btn.textContent === 'USD') {
-            btn.classList.add('active');
-            currentReport.moneda = 'USD';
-        }
-    });
+    seleccionarMoneda(currencyBtns[0]);
 
-    // Event Listeners
     document.querySelector('.quantity-btn.decrease').addEventListener('click', () => ajustarCantidad(-1));
     document.querySelector('.quantity-btn.increase').addEventListener('click', () => ajustarCantidad(1));
     currencyBtns.forEach(btn => btn.addEventListener('click', () => seleccionarMoneda(btn)));
@@ -75,15 +46,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelector('.process-btn').addEventListener('click', procesarDefecto);
     document.querySelector('.reject-btn').addEventListener('click', registrarRechazo);
 
-    // Funciones
+    function crearReporteInicial(token) {
+        return {
+            loteId: null,
+            inspector: obtenerUsername(token),
+            moneda: 'USD',
+            defectos: [],
+            idUsuario: obtenerUsuarioId(token),
+            costoTotalUSD: 0,
+            costoTotalMostrar: 0
+        };
+    }
+
     function ajustarCantidad(valor) {
         let nuevaCantidad = parseInt(quantityInput.value) + valor;
         quantityInput.value = nuevaCantidad < 1 ? 1 : nuevaCantidad;
     }
 
     async function seleccionarMoneda(btn) {
-        if (monedaBloqueada)
-            return;
+        if (monedaBloqueada) return;
 
         monedaBloqueada = true;
         currencyBtns.forEach(b => {
@@ -93,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         try {
-            const nuevaMoneda = btn.textContent;
+            const nuevaMoneda = btn.textContent.trim();
 
             currencyBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -121,10 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const response = await fetch(`/api/v1/conversion/rate?from=USD&to=MXN`);
             const data = await response.json();
-
-            if (data && data.exchangeRate) {
-                tasaCambioMXN = parseFloat(data.exchangeRate);
-            }
+            if (data && data.exchangeRate) tasaCambioMXN = parseFloat(data.exchangeRate);
         } catch (error) {
             console.error('Error actualizando tasa:', error);
             mostrarError('No se pudo actualizar la tasa de cambio');
@@ -133,16 +111,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function actualizarValoresMostrados() {
-        // Actualizar costo total
         currentReport.costoTotalMostrar = currentReport.moneda === 'USD'
-                ? currentReport.costoTotalUSD
-                : currentReport.costoTotalUSD * tasaCambioMXN;
+            ? currentReport.costoTotalUSD
+            : currentReport.costoTotalUSD * tasaCambioMXN;
 
-        // Actualizar defectos
         currentReport.defectos.forEach(defecto => {
             defecto.costoMostrar = currentReport.moneda === 'USD'
-                    ? defecto.costoUSD
-                    : defecto.costoUSD * tasaCambioMXN;
+                ? defecto.costoUSD
+                : defecto.costoUSD * tasaCambioMXN;
         });
     }
 
@@ -187,45 +163,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function procesarDefecto() {
         const loteId = document.getElementById('loteId').value.trim();
-
-        if (!loteId) {
-            mostrarError('Ingrese el ID del Lote');
-            return;
-        }
-
+        if (!loteId) return mostrarError('Ingrese el ID del Lote');
         currentReport.loteId = loteId;
 
         const piezaId = parseInt(piezaSelect.value) || 0;
         const defectoTipoId = parseInt(document.querySelector('input[name="defecto"]:checked')?.value) || 0;
         const detalles = document.getElementById('detalles').value;
         const cantidad = parseInt(quantityInput.value) || 0;
-        const moneda = document.querySelector('.currency-btn.active').textContent;
 
-        if (isNaN(piezaId)) {
-            mostrarError('Seleccione una pieza válida');
-            return;
-        }
-
-        if (!validarFormulario(loteId, piezaId, defectoTipoId, detalles))
-            return;
+        if (!validarFormulario(loteId, piezaId, defectoTipoId, detalles)) return;
 
         const pieza = piezasList.find(p => p.idPieza === piezaId);
-        if (!pieza) {
-            mostrarError('Pieza no encontrada');
-            return;
-        }
+        if (!pieza) return mostrarError('Pieza no encontrada');
 
         const costoUSD = pieza.costo * cantidad;
-
         const nuevoDefecto = {
             tipoDefecto: {idTipoDefecto: defectoTipoId},
             detalles,
             cantidad_piezas: cantidad,
             pieza: {idPieza: piezaId},
-            costoUSD: costoUSD,
-            costoMostrar: currentReport.moneda === 'USD'
-                    ? costoUSD
-                    : costoUSD * tasaCambioMXN
+            costoUSD,
+            costoMostrar: currentReport.moneda === 'USD' ? costoUSD : costoUSD * tasaCambioMXN
         };
 
         currentReport.defectos.push(nuevoDefecto);
@@ -238,19 +196,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function registrarRechazo() {
-        if (currentReport.costoTotalUSD <= 0) {
-            mostrarError('El costo total debe ser mayor a cero');
-            return;
-        }
-
-        if (!currentReport.loteId) {
-            mostrarError('Primero debe procesar al menos un defecto con un ID de lote válido');
-            return;
-        }
-
-        if (currentReport.defectos.length === 0) {
-            mostrarError('Agrega al menos un defecto');
-            return;
+        if (currentReport.costoTotalUSD <= 0 || !currentReport.loteId || currentReport.defectos.length === 0) {
+            return mostrarError('Datos insuficientes para registrar el rechazo');
         }
 
         try {
@@ -260,12 +207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 idUsuario: currentReport.idUsuario,
                 moneda: currentReport.moneda,
                 costoTotal: currentReport.moneda === 'USD'
-                        ? currentReport.costoTotalUSD
-                        : currentReport.costoTotalUSD * tasaCambioMXN,
-                defectos: currentReport.defectos.map(d => ({
-                        ...d,
-                        costo: d.costoUSD
-                    }))
+                    ? currentReport.costoTotalUSD
+                    : currentReport.costoTotalUSD * tasaCambioMXN,
+                defectos: currentReport.defectos.map(d => ({...d, costo: d.costoUSD}))
             };
 
             const response = await fetch('/api/v1/reportes', {
@@ -277,8 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 body: JSON.stringify(reporteData)
             });
 
-            if (!response.ok)
-                throw new Error(await response.text());
+            if (!response.ok) throw new Error(await response.text());
 
             const data = await response.json();
             mostrarExito('Reporte registrado exitosamente');
@@ -287,7 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let mensaje = `📦 REPORTE COMPLETO\n`;
             mensaje += `Lote ID: ${data.loteId}\n`;
             mensaje += `Usuario ID: ${data.idUsuario}\n`;
-            mensaje += `Moneda: ${data.moneda}\n`;
+            mensaje += `Moneda: ${reporteData.moneda}\n`;
             mensaje += `Costo Total: ${data.costoTotal.toFixed(2)}\n`;
             mensaje += `Defectos:\n`;
 
@@ -304,13 +247,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function actualizarResumen(reporte) {
         document.getElementById('resumenLote').textContent = reporte.loteId || '-';
-        document.getElementById('resumenCosto').textContent =
-                `${reporte.costoTotalMostrar.toFixed(2)} ${reporte.moneda || ''}`;
+        document.getElementById('resumenCosto').textContent = `${reporte.costoTotalMostrar.toFixed(2)} ${reporte.moneda ?? 'USD'}`;
 
         defectosResumen.innerHTML = reporte.defectos.map(defecto => {
             const pieza = piezasList.find(p => p.idPieza === defecto.pieza.idPieza);
             const tipo = tiposDefectoList.find(t => t.idTipoDefecto === defecto.tipoDefecto.idTipoDefecto);
-
             return `
                 <div class="summary-row">
                     <span>${pieza?.nombre || 'Desconocido'}</span>
@@ -332,19 +273,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     function limpiarFormulario() {
         document.getElementById('loteId').value = '';
         limpiarCamposDefecto();
-        currencyBtns[0].click();
+        seleccionarMoneda(currencyBtns[0]);
         defectosResumen.innerHTML = '';
-
-        currentReport = {
-            loteId: null,
-            inspector: obtenerUsername(token),
-            moneda: 'USD',
-            defectos: [],
-            idUsuario: obtenerUsuarioId(token),
-            costoTotalUSD: 0,
-            costoTotalMostrar: 0
-        };
-
+        currentReport = crearReporteInicial(token);
         actualizarResumen(currentReport);
     }
 
@@ -365,21 +296,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function validarFormulario(loteId, piezaId, defectoTipoId, detalles) {
-        if (!loteId) {
-            mostrarError('Ingrese el ID del Lote');
-            return false;
-        }
-
-        if (!piezaId) {
-            mostrarError('Seleccione una pieza');
-            return false;
-        }
-        if (!defectoTipoId) {
-            mostrarError('Seleccione un tipo de defecto');
-            return false;
-        }
-        if (!detalles) {
-            mostrarError('Ingrese los detalles del defecto');
+        if (!loteId || !piezaId || !defectoTipoId || !detalles) {
+            mostrarError('Todos los campos deben estar completos');
             return false;
         }
         return true;
@@ -388,7 +306,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     function obtenerUsuarioId(token) {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log("Payload del token:", payload);
             return payload.userId;
         } catch (error) {
             console.error('Error al obtener userId:', error);
@@ -399,7 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function obtenerUsername(token) {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload.sub; // El subject del token es el username
+            return payload.sub;
         } catch (error) {
             console.error('Error al obtener username:', error);
             return null;
@@ -407,8 +324,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Conectar WebSocket y manejar mensajes entrantes
-conectarNotificaciones((mensaje) => {
-    console.log("Mensaje recibido en registroDefectos:", mensaje);
-    // Aquí podrías mostrar una notificación visual si lo deseas
+conectarNotificaciones(mensaje => {
+    console.log('Mensaje recibido en registroDefectos:', mensaje);
 });
