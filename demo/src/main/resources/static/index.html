@@ -8,8 +8,8 @@
 </head>
 <body>
   <h1>Real-Time Notifications</h1>
-  
-  <ul id="mensajes"></ul>
+
+  <div id="mensajes"></div>
 
   <script>
     let stompClient = null;
@@ -20,12 +20,16 @@
     stompClient.connect({}, function (frame) {
       console.log("✅ Conectado: " + frame);
       stompClient.subscribe('/topic/notifications', function (msg) {
-        const mensaje = msg.body;
-        console.log("📥 Mensaje recibido:", mensaje);
+        try {
+          const parsed = JSON.parse(msg.body);
+          const mensaje = parsed.message;
 
-        const li = document.createElement("li");
-        li.textContent = mensaje;
-        document.getElementById("mensajes").appendChild(li);
+          const pre = document.createElement("pre");
+          pre.textContent = mensaje;
+          document.getElementById("mensajes").appendChild(pre);
+        } catch (e) {
+          console.error("❌ Error al procesar el mensaje:", e);
+        }
       });
     }, function (error) {
       console.error("❌ Error de conexión:", error);
