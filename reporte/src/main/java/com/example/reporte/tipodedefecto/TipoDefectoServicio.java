@@ -23,10 +23,11 @@ import org.springframework.stereotype.Service;
 public class TipoDefectoServicio {
 
     // Repositorio para acceder a los datos de tipo de defecto
-    private final TipoDefectoRepository tipoDefectoRepositorio;
+     private final TipoDefectoRepository tipoDefectoRepository;
 
     // Repositorio para acceder a los defectos, usado para validaciones antes de eliminar
     private final DefectoRepository defectoRepositorio;
+    
 
     /**
      * Obtiene todos los tipos de defecto existentes en la base de datos.
@@ -63,7 +64,7 @@ public class TipoDefectoServicio {
 
         // Si es una actualización, verificar que no exista otro con el mismo nombre
         if (tipoDefecto.getIdTipoDefecto() != null) {
-            Optional<TipoDefecto> existente = tipoDefectoRepositorio.findByNombreAndIdTipoDefectoNot(
+            Optional<TipoDefecto> existente = tipoDefectoRepository.findByNombreAndIdTipoDefectoNot(
                     tipoDefecto.getNombre(),
                     tipoDefecto.getIdTipoDefecto()
             );
@@ -74,7 +75,7 @@ public class TipoDefectoServicio {
         }
 
         // Guardar el nuevo o actualizado tipo de defecto
-        return tipoDefectoRepositorio.save(tipoDefecto);
+        return tipoDefectoRepository.save(tipoDefecto);
     }
 
     /**
@@ -90,6 +91,6 @@ public class TipoDefectoServicio {
         }
 
         // Eliminar el tipo de defecto
-        tipoDefectoRepositorio.deleteById(idTipoDefecto);
+        tipoDefectoRepository.deleteById(idTipoDefecto);
     }
 }

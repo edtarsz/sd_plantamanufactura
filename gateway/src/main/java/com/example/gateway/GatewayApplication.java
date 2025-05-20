@@ -1,3 +1,9 @@
+
+package com.example.gateway;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 /*
  * Clase principal para arrancar la aplicación Gateway.
  *
@@ -6,11 +12,6 @@
  * 
  * @author Ramos
  */
-package com.example.gateway;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 @SpringBootApplication
 public class GatewayApplication {
 

@@ -1,3 +1,12 @@
+
+package com.example.gateway.filter;
+
+import java.util.List;
+import java.util.function.Predicate;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+
 /*
  * Validador de rutas para determinar si un endpoint requiere autenticación.
  * 
@@ -9,14 +18,6 @@
  * 
  * @author Ramos
  */
-package com.example.gateway.filter;
-
-import java.util.List;
-import java.util.function.Predicate;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
-
 @Component
 public class RouteValidator {
 

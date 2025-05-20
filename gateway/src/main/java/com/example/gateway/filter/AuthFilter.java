@@ -1,17 +1,4 @@
-/*
- * Filtro global para la autenticación en el API Gateway.
- * 
- * Este filtro intercepta todas las solicitudes entrantes y valida si la ruta
- * requiere autenticación. Si es así, intenta extraer y validar un token JWT
- * presente en el header Authorization o en una cookie llamada "authToken".
- * 
- * Si la validación falla o no se encuentra token válido, redirige al login
- * o responde con UNAUTHORIZED según el tipo de petición.
- * 
- * Usa RouteValidator para determinar qué rutas son públicas y cuáles protegidas.
- * 
- * @author Ramos
- */
+
 package com.example.gateway.filter;
 
 import com.example.gateway.util.JWTServicio;
@@ -26,6 +13,20 @@ import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
+/*
+ * Filtro global para la autenticación en el API Gateway.
+ * 
+ * Este filtro intercepta todas las solicitudes entrantes y valida si la ruta
+ * requiere autenticación. Si es así, intenta extraer y validar un token JWT
+ * presente en el header Authorization o en una cookie llamada "authToken".
+ * 
+ * Si la validación falla o no se encuentra token válido, redirige al login
+ * o responde con UNAUTHORIZED según el tipo de petición.
+ * 
+ * Usa RouteValidator para determinar qué rutas son públicas y cuáles protegidas.
+ * 
+ * @author Ramos
+ */
 @Component
 public class AuthFilter implements GlobalFilter, Ordered {
 

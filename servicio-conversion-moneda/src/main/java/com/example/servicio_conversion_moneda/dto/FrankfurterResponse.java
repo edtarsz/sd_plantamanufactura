@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 /**
  * DTO para mapear la respuesta completa de la API de Frankfurter.
  *
- * @author
+ * @author PC
  */
 @Data
 @NoArgsConstructor
