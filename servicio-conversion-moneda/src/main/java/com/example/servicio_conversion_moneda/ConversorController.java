@@ -9,8 +9,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
-
 /**
+ * Controlador REST para operaciones de conversión de moneda.
+ *
+ * <p>Expone endpoints para realizar conversiones entre monedas y obtener tasas de cambio actuales
+ * utilizando el servicio {@link ConversorService}.</p>
+ *
+ * <p>Base URL: <code>/api/v1/conversion</code></p>
  *
  * @author PC
  */
@@ -20,12 +25,26 @@ public class ConversorController {
 
     private final ConversorService conversorService;
 
+    /**
+     * Constructor que inyecta el servicio de conversión de moneda.
+     *
+     * @param conversorService el servicio que contiene la lógica de negocio
+     */
     @Autowired
     public ConversorController(ConversorService conversorService) {
         this.conversorService = conversorService;
     }
 
-    //GET /api/v1/conversion/convert?from=USD&to=MXN&amount=100
+    /**
+     * Endpoint para convertir una cantidad entre dos monedas.
+     * 
+     * <p>Ejemplo: <code>GET /api/v1/conversion/convert?from=USD&to=MXN&amount=100</code></p>
+     *
+     * @param from moneda de origen (ej. "USD")
+     * @param to moneda de destino (ej. "MXN")
+     * @param amount cantidad a convertir
+     * @return resultado de la conversión o mensaje de error
+     */
     @GetMapping("/convert")
     public ResponseEntity<?> convertirMoneda(
             @RequestParam String from,
@@ -48,7 +67,15 @@ public class ConversorController {
         }
     }
 
-    //GET /api/v1/conversion/rate?from=USD&to=MXN
+    /**
+     * Endpoint para obtener la tasa de cambio entre dos monedas.
+     * 
+     * <p>Ejemplo: <code>GET /api/v1/conversion/rate?from=USD&to=MXN</code></p>
+     *
+     * @param from moneda de origen
+     * @param to moneda de destino
+     * @return objeto {@link RateResponse} o mensaje de error
+     */
     @GetMapping("/rate")
     public ResponseEntity<?> obtenerTasa(
             @RequestParam String from,

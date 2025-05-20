@@ -17,9 +17,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import org.springframework.web.client.RestClientException;
-
 /**
+ * Servicio que realiza operaciones de conversión y consulta de tasas de cambio de moneda.
  *
+ * <p>Utiliza la API externa <a href="https://www.frankfurter.app">Frankfurter</a> para obtener tasas actualizadas.</p>
+ *
+ * <p>Contiene lógica de negocio para convertir montos entre monedas y consultar tasas actuales.</p>
+ * 
  * @author PC
  */
 @Service
@@ -30,6 +34,11 @@ public class ConversorService {
     @Value("${external.api.exchangerate.base-url:https://api.frankfurter.app}")
     private String frankfurterApiBaseUrl;
 
+    /**
+     * Constructor con inyección de {@link RestTemplate}.
+     *
+     * @param restTemplate plantilla para llamadas HTTP
+     */
     @Autowired
     public ConversorService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -38,9 +47,9 @@ public class ConversorService {
     /**
      * Obtiene la tasa de cambio entre dos monedas desde la API de Frankfurter.
      *
-     * @param monedaOrigen Código de la moneda de origen (ej. "USD")
-     * @param monedaDestino Código de la moneda de destino (ej. "MXN")
-     * @return RateResponse con la tasa de cambio o null si hay error.
+     * @param monedaOrigen código de la moneda de origen (ej. "USD")
+     * @param monedaDestino código de la moneda de destino (ej. "MXN")
+     * @return objeto {@link RateResponse} con la tasa de cambio o <code>null</code> si falla
      */
     public RateResponse obtenerTasaDeCambio(String monedaOrigen, String monedaDestino) {
         String url = UriComponentsBuilder.fromHttpUrl(frankfurterApiBaseUrl)
@@ -69,18 +78,19 @@ public class ConversorService {
     }
 
     /**
-     * Convierte una cantidad de una moneda a otra usando la tasa obtenida.
+     * Convierte una cantidad de una moneda a otra usando la tasa de cambio actual.
      *
-     * @param monedaOrigen Código de la moneda de origen
-     * @param monedaDestino Código de la moneda de destino
-     * @param cantidad La cantidad a convertir
-     * @return ConversionResponse con el resultado o null si hay error.
+     * @param monedaOrigen código de la moneda de origen
+     * @param monedaDestino código de la moneda de destino
+     * @param cantidad cantidad a convertir
+     * @return objeto {@link ConversionResponse} con los datos de la conversión o <code>null</code> si hay error
      */
     public ConversionResponse convertir(String monedaOrigen, String monedaDestino, BigDecimal cantidad) {
         if (cantidad == null || cantidad.compareTo(BigDecimal.ZERO) < 0) {
             System.err.println("Cantidad inválida para convertir: " + cantidad);
             return null;
         }
+
         if (monedaOrigen.equalsIgnoreCase(monedaDestino)) {
             return new ConversionResponse(monedaOrigen.toUpperCase(), monedaDestino.toUpperCase(), cantidad, BigDecimal.ONE, cantidad, LocalDate.now());
         }
