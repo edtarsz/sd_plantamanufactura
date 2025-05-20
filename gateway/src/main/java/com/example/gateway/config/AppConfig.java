@@ -1,6 +1,12 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Configuración de beans para la aplicación Gateway.
+ *
+ * Esta clase define un bean de tipo RestTemplate que puede ser utilizado
+ * para realizar llamadas HTTP sincronas hacia otros servicios.
+ * 
+ * No está configurado con balanceo de carga (LoadBalanced).
+ * 
+ * @author Ramos
  */
 package com.example.gateway.config;
 
@@ -8,10 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-/**
- *
- * @author Ramos
- */
 @Configuration
 public class AppConfig {
 

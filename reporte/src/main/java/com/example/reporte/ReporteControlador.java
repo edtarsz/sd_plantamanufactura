@@ -1,11 +1,6 @@
 /*
- * Controlador REST para la gestión de reportes de defectos.
- * 
- * Proporciona endpoints para crear, consultar, actualizar, eliminar y exportar
- * reportes de defectos en diferentes formatos.
- * 
- * @author Ramos
- * @version 1.0
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.example.reporte;
 
@@ -28,10 +23,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controlador REST que expone los endpoints relacionados con reportes de defectos.
- * 
- * Proporciona operaciones CRUD y funcionalidades adicionales como filtrado
- * y exportación de reportes en diversos formatos.
+ * Controlador REST que expone los endpoints relacionados con reportes de
+ * defectos.
+ *
+ * Proporciona operaciones CRUD y funcionalidades adicionales como filtrado y
+ * exportación de reportes en diversos formatos.
+ *
+ * @author Ramos
  */
 @RestController
 @RequestMapping(path = "/api/v1/reportes")
@@ -41,8 +39,9 @@ public class ReporteControlador {
 
     /**
      * Constructor para la inyección de dependencias.
-     * 
-     * @param reporteServicio Servicio que maneja la lógica de negocio de reportes
+     *
+     * @param reporteServicio Servicio que maneja la lógica de negocio de
+     * reportes
      */
     public ReporteControlador(ReporteServicio reporteServicio) {
         this.reporteServicio = reporteServicio;
@@ -50,7 +49,7 @@ public class ReporteControlador {
 
     /**
      * Endpoint para obtener el detalle completo de un reporte específico.
-     * 
+     *
      * @param idReporte ID del reporte a consultar
      * @return ResponseEntity con el reporte si existe, o 404 si no se encuentra
      */
@@ -63,7 +62,7 @@ public class ReporteControlador {
 
     /**
      * Endpoint para obtener un reporte por su ID.
-     * 
+     *
      * @param idReporte ID del reporte a consultar
      * @return Optional con el reporte si existe
      */
@@ -74,7 +73,7 @@ public class ReporteControlador {
 
     /**
      * Endpoint para guardar o actualizar un reporte.
-     * 
+     *
      * @param reporte Objeto reporte a guardar o actualizar
      * @return ResponseEntity con el reporte guardado
      */
@@ -86,7 +85,7 @@ public class ReporteControlador {
 
     /**
      * Endpoint para eliminar un reporte por su ID.
-     * 
+     *
      * @param idReporte ID del reporte a eliminar
      */
     @DeleteMapping("/{idReporte}")
@@ -96,7 +95,7 @@ public class ReporteControlador {
 
     /**
      * Endpoint para filtrar reportes según criterios específicos.
-     * 
+     *
      * @param filtros Mapa de criterios de filtrado
      * @param idUsuario ID del usuario para filtrar reportes
      * @return ResponseEntity con la lista de reportes filtrados
@@ -112,10 +111,11 @@ public class ReporteControlador {
 
     /**
      * Endpoint para exportar reportes en diferentes formatos.
-     * 
-     * Permite exportar reportes filtrados por diversos criterios, reportes individuales
-     * por ID, o reportes por rango de fechas para todos los usuarios.
-     * 
+     *
+     * Permite exportar reportes filtrados por diversos criterios, reportes
+     * individuales por ID, o reportes por rango de fechas para todos los
+     * usuarios.
+     *
      * @param costSort Criterio de ordenamiento por costo
      * @param dateFilter Filtro de fecha (hoy, semana, mes)
      * @param inspector Filtro por inspector
@@ -127,7 +127,8 @@ public class ReporteControlador {
      * @param allUsers Indicador para incluir reportes de todos los usuarios
      * @param fechaInicio Fecha inicial para filtro por rango
      * @param fechaFin Fecha final para filtro por rango
-     * @param response Objeto HttpServletResponse para escribir el documento exportado
+     * @param response Objeto HttpServletResponse para escribir el documento
+     * exportado
      * @throws IOException Si ocurre un error durante la escritura del documento
      */
     @GetMapping("/exportar")
@@ -148,17 +149,17 @@ public class ReporteControlador {
         try {
             // Configurar respuesta
             String contentType = "application/pdf";
-            String filename = reporteId != null ? 
-                    "reporte_" + reporteId + ".pdf" : "reportes.pdf";
+            String filename = reporteId != null
+                    ? "reporte_" + reporteId + ".pdf" : "reportes.pdf";
 
             if ("excel".equals(format)) {
                 contentType = "application/vnd.ms-excel";
-                filename = reporteId != null ? 
-                        "reporte_" + reporteId + ".xlsx" : "reportes.xlsx";
+                filename = reporteId != null
+                        ? "reporte_" + reporteId + ".xlsx" : "reportes.xlsx";
             } else if ("csv".equals(format)) {
                 contentType = "text/csv";
-                filename = reporteId != null ? 
-                        "reporte_" + reporteId + ".csv" : "reportes.csv";
+                filename = reporteId != null
+                        ? "reporte_" + reporteId + ".csv" : "reportes.csv";
             }
 
             response.setContentType(contentType);
@@ -170,7 +171,7 @@ public class ReporteControlador {
                 reporteServicio.exportarReportePorId(reporteId, currency, response.getOutputStream());
                 return;
             }
-            
+
             // Check if we're exporting by date range for all users
             if (fechaInicio != null && fechaFin != null && "true".equals(allUsers)) {
                 reporteServicio.exportarReportesPorFechas(fechaInicio, fechaFin, currency, response.getOutputStream());
@@ -184,7 +185,7 @@ public class ReporteControlador {
             params.put("inspector", inspector != null ? inspector : "");
             params.put("lote", lote != null ? lote : "");
             params.put("format", format);
-            
+
             // For date range filtering with user ID
             if (fechaInicio != null && fechaFin != null) {
                 params.put("fechaInicio", fechaInicio);
@@ -204,16 +205,16 @@ public class ReporteControlador {
             // Send error response
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setContentType("text/html");
-            response.getWriter().write("<html><body><h2>Error al generar el reporte</h2>" +
-                                        "<p>" + e.getMessage() + "</p>" +
-                                        "<p>Detalles: " + e.getClass().getName() + "</p>" +
-                                        "</body></html>");
+            response.getWriter().write("<html><body><h2>Error al generar el reporte</h2>"
+                    + "<p>" + e.getMessage() + "</p>"
+                    + "<p>Detalles: " + e.getClass().getName() + "</p>"
+                    + "</body></html>");
         }
     }
 
     /**
      * Endpoint para obtener todos los reportes con información resumida.
-     * 
+     *
      * @return ResponseEntity con lista de DTOs de reportes
      */
     @GetMapping
@@ -245,7 +246,7 @@ public class ReporteControlador {
 
     /**
      * Obtiene la lista de inspectores únicos para los filtros de UI.
-     * 
+     *
      * @return ResponseEntity con la lista de nombres de inspectores
      */
     @GetMapping("/inspectores")
@@ -253,10 +254,10 @@ public class ReporteControlador {
         List<String> inspectores = reporteServicio.getInspectoresUnicos();
         return ResponseEntity.ok(inspectores);
     }
-    
+
     /**
      * Obtiene la lista de lotes únicos para los filtros de UI.
-     * 
+     *
      * @return ResponseEntity con la lista de IDs de lotes
      */
     @GetMapping("/lotes")

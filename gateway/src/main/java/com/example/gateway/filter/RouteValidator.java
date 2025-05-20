@@ -1,6 +1,13 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Validador de rutas para determinar si un endpoint requiere autenticación.
+ * 
+ * Esta clase contiene una lista de rutas públicas (sin necesidad de autenticación)
+ * y un predicado que verifica si una solicitud HTTP debe ser considerada segura,
+ * es decir, que requiere validación de token o acceso restringido.
+ * 
+ * Utiliza AntPathMatcher para permitir patrones con comodines en las rutas.
+ * 
+ * @author Ramos
  */
 package com.example.gateway.filter;
 
@@ -10,13 +17,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
-/**
- *
- * @author Ramos
- */
 @Component
 public class RouteValidator {
 
+    /**
+     * Lista de endpoints abiertos que no requieren autenticación. Incluye rutas
+     * de autenticación, registro y recursos estáticos.
+     */
     public static final List<String> openApiEndpoints = List.of(
             "/api/v1/auth/register",
             "/api/v1/auth/token",
@@ -27,6 +34,11 @@ public class RouteValidator {
             "/img/**"
     );
 
+    /**
+     * Predicado que determina si una petición HTTP debe considerarse segura, es
+     * decir, que no corresponde a una ruta pública y por lo tanto requiere
+     * autenticación.
+     */
     public Predicate<ServerHttpRequest> isSecured = request -> {
         String path = request.getURI().getPath();
         return openApiEndpoints.stream()

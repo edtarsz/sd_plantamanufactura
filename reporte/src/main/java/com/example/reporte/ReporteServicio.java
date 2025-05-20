@@ -1,12 +1,6 @@
 /*
- * Servicio para la gestión de reportes de defectos en la planta de manufactura.
- * 
- * Esta clase proporciona las funcionalidades principales para la creación,
- * consulta, actualización y exportación de reportes de defectos. También maneja la
- * generación de documentos PDF para la visualización de reportes.
- * 
- * @author Ramos
- * @version 1.0
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.example.reporte;
 
@@ -51,11 +45,13 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Servicio principal para la gestión de reportes de defectos.
- * 
+ *
  * Esta clase se encarga de todas las operaciones relacionadas con reportes,
- * incluyendo la creación de nuevos reportes, la consulta de reportes existentes,
- * el filtrado por diferentes criterios, y la exportación en diversos formatos.
- * También maneja la conversión de moneda para los reportes.
+ * incluyendo la creación de nuevos reportes, la consulta de reportes
+ * existentes, el filtrado por diferentes criterios, y la exportación en
+ * diversos formatos. También maneja la conversión de moneda para los reportes.
+ *
+ * @author Ramos
  */
 @Service
 @AllArgsConstructor
@@ -72,7 +68,7 @@ public class ReporteServicio {
 
     /**
      * Obtiene todos los reportes disponibles.
-     * 
+     *
      * @return Lista de todos los reportes en el sistema
      */
     public List<Reporte> getReportes() {
@@ -81,9 +77,10 @@ public class ReporteServicio {
 
     /**
      * Busca un reporte específico por su ID.
-     * 
+     *
      * @param id El ID del reporte a buscar
-     * @return Un Optional que contiene el reporte si existe, o vacío si no se encuentra
+     * @return Un Optional que contiene el reporte si existe, o vacío si no se
+     * encuentra
      */
     public Optional<Reporte> getReporte(Long id) {
         return reporteRepository.findById(id);
@@ -91,7 +88,7 @@ public class ReporteServicio {
 
     /**
      * Busca todos los reportes asociados a un usuario específico.
-     * 
+     *
      * @param idUsuario El ID del usuario cuyos reportes se desean consultar
      * @return Lista de reportes asociados al usuario
      */
@@ -102,7 +99,7 @@ public class ReporteServicio {
     /**
      * Guarda o actualiza un reporte, calculando automáticamente los costos
      * asociados a cada defecto.
-     * 
+     *
      * @param reporte El reporte a guardar o actualizar
      * @return El reporte guardado con todos los cálculos actualizados
      */
@@ -130,7 +127,7 @@ public class ReporteServicio {
 
     /**
      * Obtiene todos los reportes incluyendo sus detalles de defectos.
-     * 
+     *
      * @return Lista de reportes con sus defectos asociados
      */
     public List<Reporte> getTodosReportesConDetalles() {
@@ -139,7 +136,7 @@ public class ReporteServicio {
 
     /**
      * Elimina un reporte por su ID.
-     * 
+     *
      * @param id El ID del reporte a eliminar
      */
     public void delete(Long id) {
@@ -148,8 +145,9 @@ public class ReporteServicio {
 
     /**
      * Filtra reportes según criterios específicos y un usuario determinado.
-     * 
-     * @param filtros Mapa de criterios de filtrado (fecha, inspector, lote, etc.)
+     *
+     * @param filtros Mapa de criterios de filtrado (fecha, inspector, lote,
+     * etc.)
      * @param idUsuario ID del usuario para filtrar reportes
      * @return Lista de reportes filtrados
      */
@@ -213,7 +211,7 @@ public class ReporteServicio {
 
     /**
      * Exporta reportes filtrados a un formato específico.
-     * 
+     *
      * @param params Parámetros de filtrado y configuración de exportación
      * @param currency Moneda en la que se mostrarán los valores monetarios
      * @param outputStream Stream de salida donde se escribirá el reporte
@@ -246,7 +244,7 @@ public class ReporteServicio {
 
     /**
      * Genera un reporte en formato PDF a partir de una lista de reportes.
-     * 
+     *
      * @param reportes Lista de reportes a incluir en el PDF
      * @param currency Moneda en la que se mostrarán los valores
      * @param outputStream Stream de salida para el documento PDF
@@ -548,7 +546,7 @@ public class ReporteServicio {
 
     /**
      * Convierte un valor monetario de USD a otra moneda.
-     * 
+     *
      * @param amount Monto en USD a convertir
      * @param targetCurrency Moneda objetivo para la conversión
      * @return El monto convertido a la moneda objetivo
@@ -588,8 +586,9 @@ public class ReporteServicio {
     }
 
     /**
-     * Utiliza tasas de cambio predefinidas cuando el servicio de conversión no está disponible.
-     * 
+     * Utiliza tasas de cambio predefinidas cuando el servicio de conversión no
+     * está disponible.
+     *
      * @param amount Monto a convertir
      * @param targetCurrency Moneda objetivo para la conversión
      * @return El monto convertido usando tasas predefinidas
@@ -616,7 +615,7 @@ public class ReporteServicio {
 
     /**
      * Obtiene reportes con sus detalles para un usuario específico.
-     * 
+     *
      * @param usuarioId ID del usuario
      * @return Lista de reportes con detalles de defectos
      */
@@ -626,11 +625,12 @@ public class ReporteServicio {
 
     /**
      * Consulta información del usuario desde el microservicio de usuarios.
-     * 
+     *
      * @param idUsuario ID del usuario a consultar
      * @return Datos del usuario obtenidos del microservicio
      * @throws UsuarioNoEncontradoException Si el usuario no existe
-     * @throws ServicioNoDisponibleException Si el servicio de usuarios no está disponible
+     * @throws ServicioNoDisponibleException Si el servicio de usuarios no está
+     * disponible
      */
     public UsuarioDTO obtenerUsuarioDesdeMicroservicio(Long idUsuario) {
         String url = "http://usuarios/api/v1/usuarios/{id}";
@@ -657,7 +657,7 @@ public class ReporteServicio {
 
     /**
      * Exporta un único reporte por su ID.
-     * 
+     *
      * @param reporteId ID del reporte a exportar
      * @param currency Moneda en la que se mostrarán los valores
      * @param outputStream Stream de salida para el documento
@@ -679,7 +679,7 @@ public class ReporteServicio {
 
     /**
      * Exporta reportes basado en un rango de fechas sin filtro de usuario.
-     * 
+     *
      * @param fechaInicio Fecha inicial del rango en formato yyyy-MM-dd
      * @param fechaFin Fecha final del rango en formato yyyy-MM-dd
      * @param currency Moneda en la que se mostrarán los valores
@@ -691,22 +691,22 @@ public class ReporteServicio {
             // Convertir fechas de String a Date
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             final Date startDate = dateFormat.parse(fechaInicio);
-            
+
             // Crear una fecha final que incluye todo el día (añadir un día)
             Date tempEndDate = dateFormat.parse(fechaFin);
             Calendar c = Calendar.getInstance();
             c.setTime(tempEndDate);
             c.add(Calendar.DATE, 1); // Añadir un día para incluir el día final completo
             final Date endDate = c.getTime(); // Crear variable final para usar en lambda
-            
+
             // Crear especificación para filtrar por rango de fechas
             Specification<Reporte> spec = (root, query, cb) -> {
                 return cb.between(root.get("fecha"), startDate, endDate);
             };
-            
+
             // Buscar reportes con la especificación
             List<Reporte> reportes = reporteRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "fecha"));
-            
+
             // Generar PDF con los reportes filtrados
             generatePdfReport(reportes, currency, outputStream);
         } catch (Exception e) {
@@ -716,16 +716,16 @@ public class ReporteServicio {
 
     /**
      * Obtiene una lista de todos los inspectores únicos de los reportes.
-     * 
+     *
      * @return Lista de nombres de inspectores
      */
     public List<String> getInspectoresUnicos() {
         return reporteRepository.findInspectoresUnicos();
     }
-    
+
     /**
      * Obtiene una lista de todos los lotes únicos de los reportes.
-     * 
+     *
      * @return Lista de IDs de lote
      */
     public List<String> getLotesUnicos() {

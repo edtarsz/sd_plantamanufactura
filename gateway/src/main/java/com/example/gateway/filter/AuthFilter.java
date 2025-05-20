@@ -1,6 +1,16 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Filtro global para la autenticación en el API Gateway.
+ * 
+ * Este filtro intercepta todas las solicitudes entrantes y valida si la ruta
+ * requiere autenticación. Si es así, intenta extraer y validar un token JWT
+ * presente en el header Authorization o en una cookie llamada "authToken".
+ * 
+ * Si la validación falla o no se encuentra token válido, redirige al login
+ * o responde con UNAUTHORIZED según el tipo de petición.
+ * 
+ * Usa RouteValidator para determinar qué rutas son públicas y cuáles protegidas.
+ * 
+ * @author Ramos
  */
 package com.example.gateway.filter;
 
@@ -16,10 +26,6 @@ import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
-/**
- *
- * @author Ramos
- */
 @Component
 public class AuthFilter implements GlobalFilter, Ordered {
 
@@ -33,14 +39,14 @@ public class AuthFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
+        // Si la ruta es pública, continuar sin autenticación
         if (!routeValidator.isSecured.test(request)) {
             return chain.filter(exchange);
         }
 
-        // Obtener el token del header o de la cookie
+        // Obtener token del header Authorization o de cookies
         String token = request.getHeaders().getFirst("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
-            // Buscar el token en las cookies
             String cookieHeader = request.getHeaders().getFirst("Cookie");
             if (cookieHeader != null) {
                 String[] cookies = cookieHeader.split("; ");
@@ -53,19 +59,29 @@ public class AuthFilter implements GlobalFilter, Ordered {
             }
         }
 
+        // Si no hay token válido, redirigir o denegar acceso
         if (token == null || !token.startsWith("Bearer ")) {
             return redirectToLogin(exchange);
         }
 
         try {
+            // Validar token JWT
             String jwt = token.substring(7);
             jwtService.validateToken(jwt);
             return chain.filter(exchange);
         } catch (Exception e) {
+            // Token inválido o expirado: redirigir o denegar
             return redirectToLogin(exchange);
         }
     }
 
+    /**
+     * Redirige a la página de login o responde con código 401 si la petición es
+     * API.
+     *
+     * @param exchange Contexto de la petición HTTP
+     * @return Mono<Void> para continuar con la respuesta HTTP
+     */
     private Mono<Void> redirectToLogin(ServerWebExchange exchange) {
         String path = exchange.getRequest().getPath().toString();
 
