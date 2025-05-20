@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.example.auth.dto;
 
 import lombok.AllArgsConstructor;
@@ -10,7 +6,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- *
+ * DTO (Data Transfer Object) que representa la respuesta con la información
+ * del usuario obtenida desde el servicio o base de datos.
+ * 
+ * Contiene los campos:
+ * - idUsuario: identificador único del usuario.
+ * - username: nombre de usuario.
+ * - password: contraseña codificada.
+ * 
+ * Las anotaciones Lombok usadas:
+ * - @Getter y @Setter para los métodos de acceso.
+ * - @NoArgsConstructor para constructor sin argumentos.
+ * - @AllArgsConstructor para constructor con todos los campos.
+ * 
  * @author Ramos
  */
 @Getter

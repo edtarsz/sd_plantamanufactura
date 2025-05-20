@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.example.auth.controlador;
 
 import com.example.auth.dto.AuthRequest;
@@ -26,7 +22,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- *
+ * Controlador REST para la autenticación y registro de usuarios.
+ * 
+ * Define endpoints para:
+ * - Registro de nuevos usuarios.
+ * - Login y generación de token JWT.
+ * - Validación de tokens.
+ * 
+ * Utiliza Spring Security para la autenticación y un cliente Feign para la
+ * comunicación con el servicio de usuarios.
+ * 
  * @author Ramos
  */
 @RestController
@@ -45,6 +50,15 @@ public class AuthControlador {
     @Autowired
     private JWTServicio jwtServicio;
 
+    /**
+     * Endpoint para registrar un nuevo usuario.
+     * 
+     * Recibe un objeto {@link UsuarioRequest} con los datos del usuario.
+     * Codifica la contraseña usando BCrypt y la envía al servicio de usuarios.
+     * 
+     * @param usuarioRequest Datos del usuario a registrar.
+     * @return un mapa con el mensaje de éxito o error.
+     */
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> addNewUser(@RequestBody UsuarioRequest usuarioRequest) {
         Map<String, String> response = new HashMap<>();
@@ -62,6 +76,15 @@ public class AuthControlador {
         }
     }
 
+    /**
+     * Endpoint para autenticar a un usuario y generar un token JWT.
+     * 
+     * Recibe un objeto {@link AuthRequest} con usuario y contraseña.
+     * Si la autenticación es exitosa, devuelve un token JWT.
+     * 
+     * @param request Datos de autenticación del usuario.
+     * @return un mapa con el token JWT o un mensaje de error.
+     */
     @PostMapping("/token")
     public ResponseEntity<Map<String, String>> login(@RequestBody AuthRequest request) {
         try {
@@ -80,6 +103,14 @@ public class AuthControlador {
         }
     }
 
+    /**
+     * Endpoint para validar un token JWT.
+     * 
+     * Recibe un parámetro de consulta "token" y valida su vigencia.
+     * 
+     * @param token Token JWT a validar.
+     * @return mensaje indicando si la llave es válida.
+     */
     @GetMapping("/validate")
     public String validateToken(@RequestParam("token") String token) {
         servicioAuth.validateToken(token);

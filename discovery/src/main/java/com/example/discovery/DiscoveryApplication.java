@@ -1,3 +1,11 @@
+/*
+ * Clase principal para iniciar el servidor de descubrimiento Eureka.
+ *
+ * Esta clase habilita el servidor Eureka, que permite el registro y
+ * descubrimiento dinámico de servicios dentro de la arquitectura de microservicios.
+ * 
+ * @author Ramos
+ */
 package com.example.discovery;
 
 import org.springframework.boot.SpringApplication;
